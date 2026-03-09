@@ -30,18 +30,29 @@ function Calendar({ selected, onSelect }) {
   const today = new Date();
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 16);
+  const maxIso = isoDate(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+
   const firstDay = new Date(view.y, view.m, 1).getDay();
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
+  // Impede navegar para meses sem nenhum dia disponível
+  const viewMonthMaxIso = isoDate(view.y, view.m, daysInMonth);
+  const viewMonthMinIso = isoDate(view.y, view.m, 1);
+  const canGoPrev = viewMonthMinIso > todayIso;
+  const canGoNext = viewMonthMaxIso < maxIso;
+
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-        <button onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} style={navBtn}>‹</button>
+        <button onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} style={{ ...navBtn, opacity: canGoPrev ? 1 : 0.2, cursor: canGoPrev ? "pointer" : "default" }} disabled={!canGoPrev}>‹</button>
         <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
-        <button onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} style={navBtn}>›</button>
+        <button onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} style={{ ...navBtn, opacity: canGoNext ? 1 : 0.2, cursor: canGoNext ? "pointer" : "default" }} disabled={!canGoNext}>›</button>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6 }}>
         {PT_DAYS_SHORT.map(d => (
@@ -54,17 +65,22 @@ function Calendar({ selected, onSelect }) {
           const iso = isoDate(view.y, view.m, d);
           const isSelected = selected === iso;
           const isToday = iso === todayIso;
+          const disabled = iso < todayIso || iso > maxIso;
           return (
-            <button key={iso} onClick={() => onSelect(iso)} style={{
+            <button key={iso} onClick={() => !disabled && onSelect(iso)} style={{
               aspectRatio:"1", borderRadius:8,
               border: isSelected ? "2px solid #111" : "2px solid transparent",
               background: isSelected ? "#111" : "transparent",
-              color: isSelected ? "#fff" : "#111",
+              color: disabled ? "#ccc" : isSelected ? "#fff" : "#111",
               fontWeight: isToday ? 700 : 400,
-              fontSize:13, cursor:"pointer",
+              fontSize:13,
+              cursor: disabled ? "default" : "pointer",
             }}>{d}</button>
           );
         })}
+      </div>
+      <div style={{ fontSize:11, color:"#bbb", marginTop:14, textAlign:"center" }}>
+        Previsão disponível para os próximos 16 dias
       </div>
     </div>
   );
