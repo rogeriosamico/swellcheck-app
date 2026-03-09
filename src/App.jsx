@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe"];
 const API_BASE = "https://swellcheck.vercel.app";
@@ -30,18 +30,14 @@ function Calendar({ selected, onSelect }) {
   const today = new Date();
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
-
   const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 16);
+  maxDate.setDate(maxDate.getDate() + 14);
   const maxIso = isoDate(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
-
   const firstDay = new Date(view.y, view.m, 1).getDay();
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  // Impede navegar para meses sem nenhum dia disponível
   const viewMonthMaxIso = isoDate(view.y, view.m, daysInMonth);
   const viewMonthMinIso = isoDate(view.y, view.m, 1);
   const canGoPrev = viewMonthMinIso > todayIso;
@@ -50,9 +46,9 @@ function Calendar({ selected, onSelect }) {
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-        <button onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} style={{ ...navBtn, opacity: canGoPrev ? 1 : 0.2, cursor: canGoPrev ? "pointer" : "default" }} disabled={!canGoPrev}>‹</button>
+        <button onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} style={{ ...navBtn, opacity: canGoPrev?1:0.2, cursor: canGoPrev?"pointer":"default" }} disabled={!canGoPrev}>‹</button>
         <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
-        <button onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} style={{ ...navBtn, opacity: canGoNext ? 1 : 0.2, cursor: canGoNext ? "pointer" : "default" }} disabled={!canGoNext}>›</button>
+        <button onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} style={{ ...navBtn, opacity: canGoNext?1:0.2, cursor: canGoNext?"pointer":"default" }} disabled={!canGoNext}>›</button>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6 }}>
         {PT_DAYS_SHORT.map(d => (
@@ -73,14 +69,13 @@ function Calendar({ selected, onSelect }) {
               background: isSelected ? "#111" : "transparent",
               color: disabled ? "#ccc" : isSelected ? "#fff" : "#111",
               fontWeight: isToday ? 700 : 400,
-              fontSize:13,
-              cursor: disabled ? "default" : "pointer",
+              fontSize:13, cursor: disabled ? "default" : "pointer",
             }}>{d}</button>
           );
         })}
       </div>
       <div style={{ fontSize:11, color:"#bbb", marginTop:14, textAlign:"center" }}>
-        Previsão disponível para os próximos 16 dias
+        Previsão disponível para os próximos 14 dias
       </div>
     </div>
   );
@@ -97,13 +92,90 @@ async function fetchForecast(beach, date) {
   return res.json();
 }
 
+function BeachSearch({ onSelect, selectedBeach }) {
+  const [query, setQuery] = useState(selectedBeach || "");
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  // Sincroniza o texto quando a praia muda externamente
+  useEffect(() => {
+    setQuery(selectedBeach || "");
+  }, [selectedBeach]);
+
+  // Fecha dropdown ao clicar fora
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery(selectedBeach || "");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [selectedBeach]);
+
+  const filtered = BEACHES.filter(b => {
+    if (b === selectedBeach && !query) return false;
+    if (!query || query === selectedBeach) return b !== selectedBeach;
+    return b.toLowerCase().includes(query.toLowerCase()) && b !== selectedBeach;
+  });
+
+  const handleFocus = () => {
+    setQuery("");
+    setOpen(true);
+  };
+
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+    setOpen(true);
+  };
+
+  const handlePick = (b) => {
+    onSelect(b);
+    setQuery(b);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={containerRef} style={{ flex:1, position:"relative" }}>
+      <input
+        type="text"
+        placeholder="Buscar praia..."
+        value={query}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        style={{
+          width:"100%", padding:"13px 16px", borderRadius:10,
+          border:"2px solid #e0e0e0", fontSize:14, color:"#111",
+          outline:"none", boxSizing:"border-box", background:"#fff",
+        }}
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:20,
+          background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:10,
+          overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.08)",
+        }}>
+          {filtered.map(b => (
+            <div key={b} onMouseDown={() => handlePick(b)} style={{
+              padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
+              borderBottom:"1px solid #f0f0f0",
+            }}
+              onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
+              onMouseLeave={e => e.currentTarget.style.background="#fff"}
+            >{b}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const today = new Date();
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
 
   const [beach, setBeach] = useState(null);
-  const [query, setQuery] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedDay, setSelectedDay] = useState(todayIso);
   const [showCalendar, setShowCalendar] = useState(false);
   const [tempDay, setTempDay] = useState(todayIso);
@@ -115,11 +187,7 @@ export default function App() {
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
-  const suggestions = (beach && query === "") || (beach && query !== beach)
-    ? BEACHES.filter(b => b !== beach && b.toLowerCase().includes(query === beach ? "" : query.toLowerCase()))
-    : BEACHES.filter(b => b.toLowerCase().includes(query.toLowerCase()) && b !== beach);
-
-  const selectBeach = (b) => { setBeach(b); setQuery(b); setShowSuggestions(false); };
+  const selectBeach = (b) => { setBeach(b); setBeachData(null); };
   const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
   const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
   const handleCancel = () => setShowCalendar(false);
@@ -153,44 +221,13 @@ export default function App() {
 
       <div style={{ textAlign:"center", marginBottom:40, width:"100%", maxWidth:440 }}>
         <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
-        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para longboard</div>
+        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
       </div>
 
       <div style={{ width:"100%", maxWidth:440, marginBottom:8 }}>
         <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:10 }}>Praia</div>
-        <div style={{ display:"flex", gap:8, position:"relative" }}>
-          <div style={{ flex:1, position:"relative" }}>
-            <input
-              type="text"
-              placeholder="Buscar praia..."
-              value={query}
-              onChange={e => { setQuery(e.target.value); setBeach(null); setBeachData(null); setShowSuggestions(true); }}
-              onFocus={() => { setShowSuggestions(true); if (beach) setQuery(""); }}
-              onBlur={() => setTimeout(() => { setShowSuggestions(false); if (beach) setQuery(beach); }, 150)}
-              style={{
-                width:"100%", padding:"13px 16px", borderRadius:10,
-                border:"2px solid #e0e0e0", fontSize:14, color:"#111",
-                outline:"none", boxSizing:"border-box", background:"#fff",
-              }}
-            />
-            {showSuggestions && suggestions.length > 0 && (
-              <div style={{
-                position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:20,
-                background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:10,
-                overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.08)",
-              }}>
-                {suggestions.map(b => (
-                  <div key={b} onMouseDown={() => selectBeach(b)} style={{
-                    padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
-                    borderBottom:"1px solid #f0f0f0",
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
-                    onMouseLeave={e => e.currentTarget.style.background="#fff"}
-                  >{b}</div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <BeachSearch onSelect={selectBeach} selectedBeach={beach} />
           <button onClick={openCalendar} style={{
             flexShrink:0, padding:"0 16px", borderRadius:10,
             border:"2px solid #111", background:"#111", color:"#fff",
