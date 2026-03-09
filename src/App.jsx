@@ -32,7 +32,7 @@ function Calendar({ selected, onSelect }) {
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
 
   const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 16);
+  maxDate.setDate(maxDate.getDate() + 14);
   const maxIso = isoDate(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
 
   const firstDay = new Date(view.y, view.m, 1).getDay();
