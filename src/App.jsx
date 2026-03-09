@@ -135,7 +135,7 @@ export default function App() {
 
       <div style={{ textAlign:"center", marginBottom:40, width:"100%", maxWidth:440 }}>
         <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
-        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para longboard</div>
+        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
       </div>
 
       <div style={{ width:"100%", maxWidth:440, marginBottom:8 }}>
