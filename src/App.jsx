@@ -118,6 +118,7 @@ function BeachSearch({ onSelect, selectedBeach }) {
   const handleFocus = () => { setQuery(""); setOpen(true); };
   const handleChange = (e) => { setQuery(e.target.value); setOpen(true); };
   const handlePick = (b) => { onSelect(b); setQuery(b); setOpen(false); };
+  const handleClear = () => { onSelect(null); setQuery(""); setOpen(false); };
 
   return (
     <div ref={containerRef} style={{ flex:1, position:"relative" }}>
@@ -128,11 +129,18 @@ function BeachSearch({ onSelect, selectedBeach }) {
         onChange={handleChange}
         onFocus={handleFocus}
         style={{
-          width:"100%", padding:"13px 16px", borderRadius:10,
+          width:"100%", padding:"13px 40px 13px 16px", borderRadius:10,
           border:"2px solid #e0e0e0", fontSize:14, color:"#111",
           outline:"none", boxSizing:"border-box", background:"#fff",
         }}
       />
+      {selectedBeach && (
+        <button onMouseDown={handleClear} style={{
+          position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+          background:"none", border:"none", cursor:"pointer",
+          color:"#bbb", fontSize:18, lineHeight:1, padding:2,
+        }}>×</button>
+      )}
       {open && filtered.length > 0 && (
         <div style={{
           position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:20,
@@ -184,7 +192,7 @@ export default function App() {
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
-  const selectBeach = (b) => { setBeach(b); setBeachData(null); };
+  const selectBeach = (b) => { setBeach(b); setBeachData(null); if (!b) setGoodBeaches([]); };
   const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
   const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
   const handleCancel = () => setShowCalendar(false);
