@@ -261,17 +261,37 @@ export default function App() {
                 <span style={{ fontSize:14, color:"#777" }}>{cond.desc}</span>
               </div>
               <div style={{ height:1, background:"#f0f0f0", marginBottom:20 }} />
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 {[
-                  { label:"Altura",  value:`${beachData.height}m` },
-                  { label:"Vento",   value:`${beachData.windSpeed} km/h ${beachData.windDir}` },
-                  { label:"Período", value:`${beachData.period}s` },
+                  { label:"Altura total",     value:`${beachData.height}m` },
+                  { label:"Vento",            value:`${beachData.windSpeed} km/h ${beachData.windDir} (${beachData.windType === "offshore" ? "terral" : beachData.windType === "onshore" ? "maral" : "lateral"})` },
+                  { label:"Swell",            value:`${beachData.swellHeight}m · ${beachData.swellDir}` },
+                  { label:"Período do swell", value:`${beachData.swellPeriod}s` },
                 ].map(item => (
                   <div key={item.label} style={{ background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
                     <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:6 }}>{item.label}</div>
                     <div style={{ fontSize:15, fontWeight:600, color:"#111" }}>{item.value}</div>
                   </div>
                 ))}
+                {(() => {
+                  const energy = beachData.swellEnergy ?? 0;
+                  const barColor = energy <= 3 ? "#a07850" : energy <= 5 ? "#c8a800" : energy <= 8 ? "#2e9e6a" : "#d04040";
+                  return (
+                    <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                        <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
+                        <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>{energy} <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>/ 10</span></div>
+                      </div>
+                      <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
+                        <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
+                      </div>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
+                        <span style={{ fontSize:11, color:"#bbb" }}>Fraco</span>
+                        <span style={{ fontSize:11, color:"#bbb" }}>Muito forte</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ) : null
