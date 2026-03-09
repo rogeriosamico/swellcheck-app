@@ -115,9 +115,8 @@ function BeachSearch({ onSelect, selectedBeach }) {
   }, [selectedBeach]);
 
   const filtered = BEACHES.filter(b => {
-    if (b === selectedBeach && !query) return false;
-    if (!query || query === selectedBeach) return b !== selectedBeach;
-    return b.toLowerCase().includes(query.toLowerCase()) && b !== selectedBeach;
+    if (!query || query === selectedBeach) return true;
+    return b.toLowerCase().includes(query.toLowerCase());
   });
 
   const handleFocus = () => {
@@ -156,15 +155,23 @@ function BeachSearch({ onSelect, selectedBeach }) {
           background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:10,
           overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.08)",
         }}>
-          {filtered.map(b => (
-            <div key={b} onMouseDown={() => handlePick(b)} style={{
-              padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
-              borderBottom:"1px solid #f0f0f0",
-            }}
-              onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
-              onMouseLeave={e => e.currentTarget.style.background="#fff"}
-            >{b}</div>
-          ))}
+          {filtered.map(b => {
+              const isActive = b === selectedBeach;
+              return (
+                <div key={b} onMouseDown={() => handlePick(b)} style={{
+                  padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
+                  borderBottom:"1px solid #f0f0f0",
+                  background: isActive ? "#f7f7f7" : "#fff",
+                  display:"flex", alignItems:"center", justifyContent:"space-between",
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background="#f0f0f0"}
+                  onMouseLeave={e => e.currentTarget.style.background = isActive ? "#f7f7f7" : "#fff"}
+                >
+                  {b}
+                  {isActive && <span style={{ fontSize:14, color:"#111" }}>✓</span>}
+                </div>
+              );
+            })}
         </div>
       )}
     </div>
