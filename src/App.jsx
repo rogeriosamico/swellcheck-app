@@ -225,7 +225,7 @@ export default function App() {
         display:"flex", flexDirection:"column", alignItems:"center",
         padding:"40px 16px 80px",
       }}>
-        <div style={{ width:"100%", maxWidth:440, display:"flex", flexDirection:"column", flex:1 }}>
+        <div style={{ width:"100%", maxWidth:680, display:"flex", flexDirection:"column", flex:1 }}>
 
           {/* Header */}
           <div style={{ textAlign:"center", marginBottom:40 }}>
