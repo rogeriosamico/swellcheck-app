@@ -198,15 +198,18 @@ export default function App() {
       .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
   }, [beach, selectedDay]);
 
+  const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
+
   useEffect(() => {
     if (beach) return;
     setListLoading(true);
     Promise.all(BEACHES.map(b => fetchForecast(b, selectedDay).catch(() => null)))
       .then(results => {
-        const good = results
+        const all = results
           .map((d, i) => d ? { ...d, beach: BEACHES[i] } : null)
-          .filter(d => d && d.cond === "bom");
-        setGoodBeaches(good);
+          .filter(Boolean)
+          .sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
+        setGoodBeaches(all);
         setListLoading(false);
       });
   }, [beach, selectedDay]);
@@ -301,7 +304,7 @@ export default function App() {
             ) : (
               <div>
                 <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:12 }}>
-                  Bom para surfar em {parseDateLabel(selectedDay).toLowerCase()}
+                  Condições para {parseDateLabel(selectedDay).toLowerCase()}
                 </div>
                 {listLoading ? (
                   <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
