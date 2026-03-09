@@ -224,7 +224,8 @@ export default function App() {
   const cond = beachData ? CONDITIONS[beachData.cond] : null;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", display:"flex", flexDirection:"column", alignItems:"center", padding:"40px 16px 80px" }}>
+    <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", display:"flex", justifyContent:"center", padding:"40px 16px 80px" }}>
+      <div style={{ width:"100%", maxWidth:440, display:"flex", flexDirection:"column" }}>
 
       <div style={{ textAlign:"center", marginBottom:40, width:"100%", maxWidth:440 }}>
         <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
@@ -379,6 +380,7 @@ export default function App() {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
