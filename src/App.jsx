@@ -32,7 +32,7 @@ function Calendar({ selected, onSelect }) {
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
 
   const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 15);
+  maxDate.setDate(maxDate.getDate() + 16);
   const maxIso = isoDate(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
 
   const firstDay = new Date(view.y, view.m, 1).getDay();
@@ -115,7 +115,9 @@ export default function App() {
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
-  const suggestions = BEACHES.filter(b => b.toLowerCase().includes(query.toLowerCase()) && b !== beach);
+  const suggestions = (beach && query === "") || (beach && query !== beach)
+    ? BEACHES.filter(b => b !== beach && b.toLowerCase().includes(query === beach ? "" : query.toLowerCase()))
+    : BEACHES.filter(b => b.toLowerCase().includes(query.toLowerCase()) && b !== beach);
 
   const selectBeach = (b) => { setBeach(b); setQuery(b); setShowSuggestions(false); };
   const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
@@ -151,7 +153,7 @@ export default function App() {
 
       <div style={{ textAlign:"center", marginBottom:40, width:"100%", maxWidth:440 }}>
         <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
-        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
+        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para longboard</div>
       </div>
 
       <div style={{ width:"100%", maxWidth:440, marginBottom:8 }}>
@@ -163,8 +165,8 @@ export default function App() {
               placeholder="Buscar praia..."
               value={query}
               onChange={e => { setQuery(e.target.value); setBeach(null); setBeachData(null); setShowSuggestions(true); }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onFocus={() => { setShowSuggestions(true); if (beach) setQuery(""); }}
+              onBlur={() => setTimeout(() => { setShowSuggestions(false); if (beach) setQuery(beach); }, 150)}
               style={{
                 width:"100%", padding:"13px 16px", borderRadius:10,
                 border:"2px solid #e0e0e0", fontSize:14, color:"#111",
