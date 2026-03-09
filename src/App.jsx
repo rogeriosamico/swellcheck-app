@@ -324,21 +324,26 @@ export default function App() {
                       const c = CONDITIONS[d.cond];
                       return (
                         <div key={d.beach} onClick={() => selectBeach(d.beach)} style={{
-                          border:"1.5px solid #e0e0e0", borderRadius:12, padding:"16px",
-                          cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
+                          border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px",
+                          cursor:"pointer", display:"grid", alignItems:"center",
+                          gridTemplateColumns:"80px 1fr 60px 110px",
+                          gap:12, background:"#fff",
                         }}
                           onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
                           onMouseLeave={e => e.currentTarget.style.background="#fff"}
                         >
-                          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                            <span style={{ width:10, height:10, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-                            <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{d.beach}</span>
-                          </div>
-                          <div style={{ display:"flex", gap:16 }}>
-                            <span style={{ fontSize:13, color:"#999" }}>{d.height}m</span>
-                            <span style={{ fontSize:13, color:"#999" }}>{d.period}s</span>
-                            <span style={{ fontSize:13, color:"#999" }}>{d.windSpeed} km/h {d.windDir}</span>
-                          </div>
+                          <span style={{
+                            display:"flex", alignItems:"center", gap:6,
+                            fontSize:12, fontWeight:600, color:c.color,
+                            background: c.color + "18", borderRadius:20,
+                            padding:"4px 10px",
+                          }}>
+                            <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
+                            {c.label}
+                          </span>
+                          <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{d.beach}</span>
+                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{d.height}m</span>
+                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{d.windSpeed} km/h {d.windDir}</span>
                         </div>
                       );
                     })}
