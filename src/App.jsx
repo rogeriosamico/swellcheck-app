@@ -97,12 +97,8 @@ function BeachSearch({ onSelect, selectedBeach }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // Sincroniza o texto quando a praia muda externamente
-  useEffect(() => {
-    setQuery(selectedBeach || "");
-  }, [selectedBeach]);
+  useEffect(() => { setQuery(selectedBeach || ""); }, [selectedBeach]);
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -119,21 +115,9 @@ function BeachSearch({ onSelect, selectedBeach }) {
     return b.toLowerCase().includes(query.toLowerCase());
   });
 
-  const handleFocus = () => {
-    setQuery("");
-    setOpen(true);
-  };
-
-  const handleChange = (e) => {
-    setQuery(e.target.value);
-    setOpen(true);
-  };
-
-  const handlePick = (b) => {
-    onSelect(b);
-    setQuery(b);
-    setOpen(false);
-  };
+  const handleFocus = () => { setQuery(""); setOpen(true); };
+  const handleChange = (e) => { setQuery(e.target.value); setOpen(true); };
+  const handlePick = (b) => { onSelect(b); setQuery(b); setOpen(false); };
 
   return (
     <div ref={containerRef} style={{ flex:1, position:"relative" }}>
@@ -156,22 +140,22 @@ function BeachSearch({ onSelect, selectedBeach }) {
           overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.08)",
         }}>
           {filtered.map(b => {
-              const isActive = b === selectedBeach;
-              return (
-                <div key={b} onMouseDown={() => handlePick(b)} style={{
-                  padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
-                  borderBottom:"1px solid #f0f0f0",
-                  background: isActive ? "#f7f7f7" : "#fff",
-                  display:"flex", alignItems:"center", justifyContent:"space-between",
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background="#f0f0f0"}
-                  onMouseLeave={e => e.currentTarget.style.background = isActive ? "#f7f7f7" : "#fff"}
-                >
-                  {b}
-                  {isActive && <span style={{ fontSize:14, color:"#111" }}>✓</span>}
-                </div>
-              );
-            })}
+            const isActive = b === selectedBeach;
+            return (
+              <div key={b} onMouseDown={() => handlePick(b)} style={{
+                padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer",
+                borderBottom:"1px solid #f0f0f0",
+                background: isActive ? "#f7f7f7" : "#fff",
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+              }}
+                onMouseEnter={e => e.currentTarget.style.background="#f0f0f0"}
+                onMouseLeave={e => e.currentTarget.style.background = isActive ? "#f7f7f7" : "#fff"}
+              >
+                {b}
+                {isActive && <span style={{ fontSize:14, color:"#111" }}>✓</span>}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -179,6 +163,14 @@ function BeachSearch({ onSelect, selectedBeach }) {
 }
 
 export default function App() {
+  // Reset body/html margin e background
+  useEffect(() => {
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.body.style.background = "#fff";
+    document.documentElement.style.background = "#fff";
+  }, []);
+
   const today = new Date();
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -186,11 +178,9 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState(todayIso);
   const [showCalendar, setShowCalendar] = useState(false);
   const [tempDay, setTempDay] = useState(todayIso);
-
   const [beachData, setBeachData] = useState(null);
   const [beachLoading, setBeachLoading] = useState(false);
   const [beachError, setBeachError] = useState(null);
-
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
@@ -224,164 +214,182 @@ export default function App() {
   const cond = beachData ? CONDITIONS[beachData.cond] : null;
 
   return (
-    <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", display:"flex", justifyContent:"center", padding:"40px 16px 80px" }}>
-      <div style={{ width:"100%", maxWidth:440, display:"flex", flexDirection:"column" }}>
+    <>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { background: #fff; min-height: 100vh; }
+      `}</style>
+      <div style={{
+        minHeight:"100vh", background:"#fff",
+        fontFamily:"'Inter', sans-serif",
+        display:"flex", flexDirection:"column", alignItems:"center",
+        padding:"40px 16px 80px",
+      }}>
+        <div style={{ width:"100%", maxWidth:440, display:"flex", flexDirection:"column", flex:1 }}>
 
-      <div style={{ textAlign:"center", marginBottom:40, width:"100%", maxWidth:440 }}>
-        <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
-        <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
-      </div>
+          {/* Header */}
+          <div style={{ textAlign:"center", marginBottom:40 }}>
+            <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
+            <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
+          </div>
 
-      <div style={{ width:"100%", maxWidth:440, marginBottom:8 }}>
-        <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:10 }}>Praia</div>
-        <div style={{ display:"flex", gap:8 }}>
-          <BeachSearch onSelect={selectBeach} selectedBeach={beach} />
-          <button onClick={openCalendar} style={{
-            flexShrink:0, padding:"0 16px", borderRadius:10,
-            border:"2px solid #111", background:"#111", color:"#fff",
-            fontSize:13, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap",
-          }}>Filtrar por data</button>
-        </div>
-        <div style={{ fontSize:13, color:"#999", marginTop:10 }}>
-          Exibindo resultados para: <span style={{ color:"#111", fontWeight:600 }}>{parseDateLabel(selectedDay)}</span>
-        </div>
-      </div>
+          {/* Search */}
+          <div style={{ marginBottom:8 }}>
+            <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:10 }}>Praia</div>
+            <div style={{ display:"flex", gap:8 }}>
+              <BeachSearch onSelect={selectBeach} selectedBeach={beach} />
+              <button onClick={openCalendar} style={{
+                flexShrink:0, padding:"0 16px", borderRadius:10,
+                border:"2px solid #111", background:"#111", color:"#fff",
+                fontSize:13, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap",
+              }}>Filtrar por data</button>
+            </div>
+            <div style={{ fontSize:13, color:"#999", marginTop:10 }}>
+              Exibindo resultados para: <span style={{ color:"#111", fontWeight:600 }}>{parseDateLabel(selectedDay)}</span>
+            </div>
+          </div>
 
-      <div style={{ width:"100%", maxWidth:440, marginTop:24 }}>
-        {beach ? (
-          beachLoading ? (
-            <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
-          ) : beachError ? (
-            <div style={{ fontSize:14, color:"#d04040", textAlign:"center", padding:"32px 0" }}>{beachError}</div>
-          ) : beachData && cond ? (
-            <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
-              <div style={{ fontSize:12, color:"#999", marginBottom:16 }}>{parseDateLabel(selectedDay)}</div>
-              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
-                <span style={{ width:12, height:12, borderRadius:"50%", background:cond.color, flexShrink:0 }} />
-                <span style={{ fontSize:28, fontWeight:700, color:"#111" }}>{cond.label}</span>
-                <span style={{ fontSize:14, color:"#777" }}>{cond.desc}</span>
-              </div>
-              <div style={{ height:1, background:"#f0f0f0", marginBottom:20 }} />
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                {[
-                  { label:"Altura total",     value:`${beachData.height}m` },
-                  { label:"Vento",            value:`${beachData.windSpeed} km/h ${beachData.windDir} (${beachData.windType === "offshore" ? "terral" : beachData.windType === "onshore" ? "maral" : "lateral"})` },
-                  { label:"Swell",            value:`${beachData.swellHeight}m · ${beachData.swellDir}` },
-                  { label:"Período do swell", value:`${beachData.swellPeriod}s` },
-                ].map(item => (
-                  <div key={item.label} style={{ background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
-                    <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:6 }}>{item.label}</div>
-                    <div style={{ fontSize:15, fontWeight:600, color:"#111" }}>{item.value}</div>
+          {/* Results */}
+          <div style={{ marginTop:24 }}>
+            {beach ? (
+              beachLoading ? (
+                <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
+              ) : beachError ? (
+                <div style={{ fontSize:14, color:"#d04040", textAlign:"center", padding:"32px 0" }}>{beachError}</div>
+              ) : beachData && cond ? (
+                <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
+                  <div style={{ fontSize:12, color:"#999", marginBottom:16 }}>{parseDateLabel(selectedDay)}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:24 }}>
+                    <span style={{ width:12, height:12, borderRadius:"50%", background:cond.color, flexShrink:0 }} />
+                    <span style={{ fontSize:28, fontWeight:700, color:"#111" }}>{cond.label}</span>
+                    <span style={{ fontSize:14, color:"#777" }}>{cond.desc}</span>
                   </div>
-                ))}
-                {(() => {
-                  const energy = beachData.swellEnergy ?? 0;
-                  const barColor = energy <= 3 ? "#a07850" : energy <= 5 ? "#c8a800" : energy <= 8 ? "#2e9e6a" : "#d04040";
-                  return (
-                    <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                        <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
-                        <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>{energy} <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>/ 10</span></div>
+                  <div style={{ height:1, background:"#f0f0f0", marginBottom:20 }} />
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                    {[
+                      { label:"Altura total",     value:`${beachData.height}m` },
+                      { label:"Vento",            value:`${beachData.windSpeed} km/h ${beachData.windDir} (${beachData.windType === "offshore" ? "terral" : beachData.windType === "onshore" ? "maral" : "lateral"})` },
+                      { label:"Swell",            value:`${beachData.swellHeight}m · ${beachData.swellDir}` },
+                      { label:"Período do swell", value:`${beachData.swellPeriod}s` },
+                    ].map(item => (
+                      <div key={item.label} style={{ background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
+                        <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:6 }}>{item.label}</div>
+                        <div style={{ fontSize:15, fontWeight:600, color:"#111" }}>{item.value}</div>
                       </div>
-                      <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
-                        <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
-                      </div>
-                      <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
-                        <span style={{ fontSize:11, color:"#bbb" }}>Fraco</span>
-                        <span style={{ fontSize:11, color:"#bbb" }}>Muito forte</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          ) : null
-        ) : (
-          <div>
-            <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:12 }}>
-              Bom para surfar em {parseDateLabel(selectedDay).toLowerCase()}
-            </div>
-            {listLoading ? (
-              <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
-            ) : goodBeaches.length === 0 ? (
-              <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia com boas condições para o dia selecionado.</div>
+                    ))}
+                    {(() => {
+                      const energy = beachData.swellEnergy ?? 0;
+                      const barColor = energy <= 3 ? "#a07850" : energy <= 5 ? "#c8a800" : energy <= 8 ? "#2e9e6a" : "#d04040";
+                      return (
+                        <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                            <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
+                            <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>{energy} <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>/ 10</span></div>
+                          </div>
+                          <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
+                            <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
+                          </div>
+                          <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
+                            <span style={{ fontSize:11, color:"#bbb" }}>Fraco</span>
+                            <span style={{ fontSize:11, color:"#bbb" }}>Muito forte</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              ) : null
             ) : (
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                {goodBeaches.map(d => {
-                  const c = CONDITIONS[d.cond];
-                  return (
-                    <div key={d.beach} onClick={() => selectBeach(d.beach)} style={{
-                      border:"1.5px solid #e0e0e0", borderRadius:12, padding:"16px",
-                      cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
-                      onMouseLeave={e => e.currentTarget.style.background="#fff"}
-                    >
-                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                        <span style={{ width:10, height:10, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-                        <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{d.beach}</span>
-                      </div>
-                      <div style={{ display:"flex", gap:16 }}>
-                        <span style={{ fontSize:13, color:"#999" }}>{d.height}m</span>
-                        <span style={{ fontSize:13, color:"#999" }}>{d.period}s</span>
-                        <span style={{ fontSize:13, color:"#999" }}>{d.windSpeed} km/h {d.windDir}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div>
+                <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:12 }}>
+                  Bom para surfar em {parseDateLabel(selectedDay).toLowerCase()}
+                </div>
+                {listLoading ? (
+                  <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
+                ) : goodBeaches.length === 0 ? (
+                  <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia com boas condições para o dia selecionado.</div>
+                ) : (
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    {goodBeaches.map(d => {
+                      const c = CONDITIONS[d.cond];
+                      return (
+                        <div key={d.beach} onClick={() => selectBeach(d.beach)} style={{
+                          border:"1.5px solid #e0e0e0", borderRadius:12, padding:"16px",
+                          cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between",
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
+                          onMouseLeave={e => e.currentTarget.style.background="#fff"}
+                        >
+                          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                            <span style={{ width:10, height:10, borderRadius:"50%", background:c.color, flexShrink:0 }} />
+                            <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{d.beach}</span>
+                          </div>
+                          <div style={{ display:"flex", gap:16 }}>
+                            <span style={{ fontSize:13, color:"#999" }}>{d.height}m</span>
+                            <span style={{ fontSize:13, color:"#999" }}>{d.period}s</span>
+                            <span style={{ fontSize:13, color:"#999" }}>{d.windSpeed} km/h {d.windDir}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
 
-      {showCalendar && (
-        <div onClick={handleCancel} style={{
-          position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:100,
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background:"#fff", borderRadius:16, padding:"24px 20px",
-            width:"100%", maxWidth:360, boxShadow:"0 8px 32px rgba(0,0,0,0.16)",
-          }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-              <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>Filtrar por data</span>
-              <button onClick={handleCancel} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#999", lineHeight:1 }}>×</button>
+          {/* Calendar modal */}
+          {showCalendar && (
+            <div onClick={handleCancel} style={{
+              position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:100,
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              <div onClick={e => e.stopPropagation()} style={{
+                background:"#fff", borderRadius:16, padding:"24px 20px",
+                width:"100%", maxWidth:360, margin:"0 16px",
+                boxShadow:"0 8px 32px rgba(0,0,0,0.16)",
+              }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+                  <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>Filtrar por data</span>
+                  <button onClick={handleCancel} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#999", lineHeight:1 }}>×</button>
+                </div>
+                <div style={{ marginBottom:16 }}>
+                  <button onClick={() => setTempDay(todayIso)} style={{
+                    padding:"8px 16px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600,
+                    border:"2px solid #111", background: tempDay === todayIso ? "#111" : "#fff",
+                    color: tempDay === todayIso ? "#fff" : "#111",
+                  }}>Hoje</button>
+                </div>
+                <Calendar selected={tempDay} onSelect={setTempDay} />
+                <div style={{ display:"flex", gap:8, marginTop:20 }}>
+                  <button onClick={handleCancel} style={{
+                    flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600,
+                    border:"2px solid #e0e0e0", background:"#fff", color:"#111",
+                  }}>Cancelar</button>
+                  <button onClick={handleApply} style={{
+                    flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600,
+                    border:"2px solid #111", background:"#111", color:"#fff",
+                  }}>Aplicar</button>
+                </div>
+              </div>
             </div>
-            <div style={{ marginBottom:16 }}>
-              <button onClick={() => setTempDay(todayIso)} style={{
-                padding:"8px 16px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600,
-                border:"2px solid #111", background: tempDay === todayIso ? "#111" : "#fff",
-                color: tempDay === todayIso ? "#fff" : "#111",
-              }}>Hoje</button>
-            </div>
-            <Calendar selected={tempDay} onSelect={setTempDay} />
-            <div style={{ display:"flex", gap:8, marginTop:20 }}>
-              <button onClick={handleCancel} style={{
-                flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600,
-                border:"2px solid #e0e0e0", background:"#fff", color:"#111",
-              }}>Cancelar</button>
-              <button onClick={handleApply} style={{
-                flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600,
-                border:"2px solid #111", background:"#111", color:"#fff",
-              }}>Aplicar</button>
+          )}
+
+          {/* Footer */}
+          <div style={{ marginTop:"auto", paddingTop:48 }}>
+            <div style={{ height:1, background:"#f0f0f0", marginBottom:16 }} />
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              {Object.values(CONDITIONS).map(c => (
+                <div key={c.label} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
+                  <span style={{ fontSize:12, color:"#999" }}>{c.label} — {c.desc}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      )}
 
-      <div style={{ width:"100%", maxWidth:440, marginTop:"auto", paddingTop:48 }}>
-        <div style={{ height:1, background:"#f0f0f0", marginBottom:16 }} />
-        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-          {Object.values(CONDITIONS).map(c => (
-            <div key={c.label} style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-              <span style={{ fontSize:12, color:"#999" }}>{c.label} — {c.desc}</span>
-            </div>
-          ))}
         </div>
       </div>
-      </div>
-    </div>
+    </>
   );
 }
