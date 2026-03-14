@@ -26,6 +26,27 @@ function parseDateLabel(iso) {
   return `${prefix}${d.getDate()} de ${PT_MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
+function NavButton({ onClick, disabled, children }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={() => !disabled && onClick()}
+      disabled={disabled}
+      onMouseEnter={() => !disabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width:36, height:36, borderRadius:8, flexShrink:0,
+        border: disabled ? "1.5px solid #e8e8e8" : hovered ? "1.5px solid #111" : "1.5px solid #d0d0d0",
+        background: disabled ? "#fafafa" : hovered ? "#f7f7f7" : "#fff",
+        color: disabled ? "#ccc" : "#111",
+        cursor: disabled ? "not-allowed" : "pointer",
+        fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
+        transition:"border 0.12s, background 0.12s, color 0.12s",
+      }}
+    >{children}</button>
+  );
+}
+
 function Calendar({ selected, onSelect }) {
   const today = new Date();
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
@@ -47,12 +68,12 @@ function Calendar({ selected, onSelect }) {
         <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
         <NavButton onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} disabled={false}>›</NavButton>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4, marginBottom:6 }}>
         {PT_DAYS_SHORT.map(d => (
           <div key={d} style={{ textAlign:"center", fontSize:11, color:"#999", fontWeight:500 }}>{d}</div>
         ))}
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4 }}>
         {cells.map((d, i) => {
           if (!d) return <div key={i} />;
           const iso = isoDate(view.y, view.m, d);
@@ -61,12 +82,13 @@ function Calendar({ selected, onSelect }) {
           const disabled = iso < todayIso || iso > maxIso;
           return (
             <button key={iso} onClick={() => !disabled && onSelect(iso)} style={{
-              aspectRatio:"1", borderRadius:8,
+              aspectRatio:"1/1", width:"100%", borderRadius:8, boxSizing:"border-box",
               border: isSelected ? "2px solid #111" : "2px solid transparent",
               background: isSelected ? "#111" : "transparent",
               color: disabled ? "#ccc" : isSelected ? "#fff" : "#111",
               fontWeight: isToday ? 700 : 400,
               fontSize:13, cursor: disabled ? "default" : "pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
             }}>{d}</button>
           );
         })}
@@ -75,29 +97,6 @@ function Calendar({ selected, onSelect }) {
         Previsão disponível para os próximos 14 dias
       </div>
     </div>
-  );
-}
-
-function NavButton({ onClick, disabled, children }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={() => !disabled && onClick()}
-      disabled={disabled}
-      onMouseEnter={() => !disabled && setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width:36, height:36, borderRadius:8, flexShrink:0,
-        border: disabled
-          ? "1.5px solid #e8e8e8"
-          : hovered ? "1.5px solid #111" : "1.5px solid #d0d0d0",
-        background: disabled ? "#fafafa" : hovered ? "#f7f7f7" : "#fff",
-        color: disabled ? "#ccc" : "#111",
-        cursor: disabled ? "not-allowed" : "pointer",
-        fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
-        transition:"border 0.12s, background 0.12s, color 0.12s",
-      }}
-    >{children}</button>
   );
 }
 
@@ -186,7 +185,6 @@ function BeachSearch({ onSelect, selectedBeach }) {
 }
 
 export default function App() {
-  // Reset body/html margin e background
   useEffect(() => {
     document.body.style.margin = "0";
     document.body.style.padding = "0";
@@ -212,6 +210,8 @@ export default function App() {
   const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
   const handleCancel = () => setShowCalendar(false);
 
+  const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
+
   useEffect(() => {
     if (!beach) return;
     setBeachLoading(true);
@@ -220,8 +220,6 @@ export default function App() {
       .then(d => { setBeachData(d); setBeachLoading(false); })
       .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
   }, [beach, selectedDay]);
-
-  const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
 
   useEffect(() => {
     if (beach) return;
@@ -245,20 +243,14 @@ export default function App() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
       `}</style>
-      <div style={{
-        minHeight:"100vh", background:"#fff",
-        fontFamily:"'Inter', sans-serif",
-        padding:"40px 16px 80px",
-      }}>
-        <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column", flex:1 }}>
+      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
+        <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
 
-          {/* Header */}
           <div style={{ textAlign:"center", marginBottom:40 }}>
             <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
             <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
           </div>
 
-          {/* Search */}
           <div style={{ marginBottom:8 }}>
             <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:10 }}>Praia</div>
             <div style={{ display:"flex", gap:8 }}>
@@ -274,7 +266,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Results */}
           <div style={{ marginTop:24 }}>
             {beach ? (
               beachLoading ? (
@@ -304,12 +295,15 @@ export default function App() {
                     ))}
                     {(() => {
                       const energy = beachData.swellEnergy ?? 0;
+                      const kj = beachData.swellKj ?? 0;
                       const barColor = energy <= 3 ? "#a07850" : energy <= 5 ? "#c8a800" : energy <= 8 ? "#2e9e6a" : "#d04040";
                       return (
                         <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                             <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
-                            <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>{energy} <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>/ 10</span></div>
+                            <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>
+                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
+                            </div>
                           </div>
                           <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
                             <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
@@ -332,7 +326,7 @@ export default function App() {
                 {listLoading ? (
                   <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
                 ) : goodBeaches.length === 0 ? (
-                  <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia com boas condições para o dia selecionado.</div>
+                  <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia disponível para o dia selecionado.</div>
                 ) : (
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                     {goodBeaches.map(d => {
@@ -368,7 +362,6 @@ export default function App() {
             )}
           </div>
 
-          {/* Calendar modal */}
           {showCalendar && (
             <div onClick={handleCancel} style={{
               position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:100,
@@ -405,7 +398,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Footer */}
           <div style={{ marginTop:"auto", paddingTop:48 }}>
             <div style={{ height:1, background:"#f0f0f0", marginBottom:16 }} />
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
