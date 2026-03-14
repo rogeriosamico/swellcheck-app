@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { Chart, LineElement, PointElement, LineController, CategoryScale, LinearScale, Filler } from "chart.js";
+Chart.register(LineElement, PointElement, LineController, CategoryScale, LinearScale, Filler);
 
 const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe"];
 const API_BASE = "https://swellcheck.vercel.app";
@@ -100,18 +102,6 @@ function Calendar({ selected, onSelect }) {
   );
 }
 
-async function fetchForecast(beach, date) {
-  const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
-  if (!res.ok) throw new Error("Erro na API");
-  return res.json();
-}
-
-async function fetchTide(date) {
-  const res = await fetch(`${API_BASE}/tide?date=${date}`);
-  if (!res.ok) throw new Error("Erro na API");
-  return res.json();
-}
-
 function TideChart({ tides }) {
   const canvasRef = useRef(null);
   const labelsRef = useRef(null);
@@ -137,7 +127,7 @@ function TideChart({ tides }) {
       data.push(parseFloat((num / den).toFixed(3)));
     }
 
-    const chart = new window.Chart(canvasRef.current, {
+    const chart = new Chart(canvasRef.current, {
       type: "line",
       data: {
         labels: data.map((_, i) => i),
@@ -201,6 +191,8 @@ function TideChart({ tides }) {
     </div>
   );
 }
+
+function BeachSearch({ onSelect, selectedBeach }) {
   const [query, setQuery] = useState(selectedBeach || "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -276,6 +268,18 @@ function TideChart({ tides }) {
       )}
     </div>
   );
+}
+
+async function fetchForecast(beach, date) {
+  const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return res.json();
+}
+
+async function fetchTide(date) {
+  const res = await fetch(`${API_BASE}/tide?date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return res.json();
 }
 
 export default function App() {
