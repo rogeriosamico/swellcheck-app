@@ -106,7 +106,101 @@ async function fetchForecast(beach, date) {
   return res.json();
 }
 
-function BeachSearch({ onSelect, selectedBeach }) {
+async function fetchTide(date) {
+  const res = await fetch(`${API_BASE}/tide?date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return res.json();
+}
+
+function TideChart({ tides }) {
+  const canvasRef = useRef(null);
+  const labelsRef = useRef(null);
+
+  useEffect(() => {
+    if (!tides || !canvasRef.current) return;
+
+    const points = tides.map(t => {
+      const [h, m] = t.hour.split(":").map(Number);
+      return { hour: h + m / 60, level: t.level, high: t.level > 1.2 };
+    });
+
+    const steps = 97;
+    const data = [];
+    for (let i = 0; i < steps; i++) {
+      const h = i / (steps - 1) * 24;
+      let num = 0, den = 0;
+      for (const p of points) {
+        const d = Math.abs(h - p.hour);
+        const w = Math.exp(-d * d / 7);
+        num += p.level * w; den += w;
+      }
+      data.push(parseFloat((num / den).toFixed(3)));
+    }
+
+    const chart = new window.Chart(canvasRef.current, {
+      type: "line",
+      data: {
+        labels: data.map((_, i) => i),
+        datasets: [{
+          data,
+          borderColor: "#111",
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.4,
+          fill: true,
+          backgroundColor: "rgba(0,0,0,0.06)",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false, min: 0.1, max: 2.6 }
+        },
+        animation: {
+          onComplete: () => {
+            if (!labelsRef.current) return;
+            labelsRef.current.innerHTML = "";
+            const area = chart.chartArea;
+            const yScale = chart.scales.y;
+            const W = area.right - area.left;
+            points.forEach(p => {
+              const x = area.left + (p.hour / 24) * W;
+              const y = yScale.getPixelForValue(p.level);
+              const dot = document.createElement("div");
+              dot.style.cssText = `position:absolute;width:5px;height:5px;background:#111;border-radius:50%;transform:translate(-50%,-50%);left:${x}px;top:${y}px;`;
+              labelsRef.current.appendChild(dot);
+            });
+          }
+        }
+      }
+    });
+
+    return () => chart.destroy();
+  }, [tides]);
+
+  if (!tides) return null;
+  const points = tides.map(t => ({ ...t, high: t.level > 1.2 }));
+
+  return (
+    <div>
+      <div style={{ position:"relative", width:"100%", height:90 }}>
+        <canvas ref={canvasRef} />
+        <div ref={labelsRef} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", pointerEvents:"none" }} />
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:`repeat(${points.length}, 1fr)`, gap:4, marginTop:12 }}>
+        {points.map((t, i) => (
+          <div key={i} style={{ textAlign:"center" }}>
+            <div style={{ fontSize:10, color:"#999" }}>{t.high ? "↑ Alta" : "↓ Baixa"}</div>
+            <div style={{ fontSize:12, fontWeight:600, color:"#111" }}>{t.hour}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
   const [query, setQuery] = useState(selectedBeach || "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -202,10 +296,11 @@ export default function App() {
   const [beachData, setBeachData] = useState(null);
   const [beachLoading, setBeachLoading] = useState(false);
   const [beachError, setBeachError] = useState(null);
+  const [tideData, setTideData] = useState(null);
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
-  const selectBeach = (b) => { setBeach(b); setBeachData(null); if (!b) setGoodBeaches([]); };
+  const selectBeach = (b) => { setBeach(b); setBeachData(null); setTideData(null); if (!b) setGoodBeaches([]); };
   const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
   const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
   const handleCancel = () => setShowCalendar(false);
@@ -216,8 +311,15 @@ export default function App() {
     if (!beach) return;
     setBeachLoading(true);
     setBeachError(null);
-    fetchForecast(beach, selectedDay)
-      .then(d => { setBeachData(d); setBeachLoading(false); })
+    Promise.all([
+      fetchForecast(beach, selectedDay),
+      fetchTide(selectedDay),
+    ])
+      .then(([forecast, tide]) => {
+        setBeachData(forecast);
+        setTideData(tide);
+        setBeachLoading(false);
+      })
       .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
   }, [beach, selectedDay]);
 
@@ -316,6 +418,13 @@ export default function App() {
                       );
                     })()}
                   </div>
+                  {tideData && (
+                    <>
+                      <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
+                      <div style={{ fontSize:11, color:"#999", marginBottom:12 }}>Maré</div>
+                      <TideChart tides={tideData.tides} />
+                    </>
+                  )}
                 </div>
               ) : null
             ) : (
