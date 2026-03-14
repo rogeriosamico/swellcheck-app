@@ -228,7 +228,7 @@ export default function App() {
     <>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { background: #fff; min-height: 100vh; }
+        html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
       `}</style>
       <div style={{
         minHeight:"100vh", background:"#fff",
@@ -326,7 +326,7 @@ export default function App() {
                         <div key={d.beach} onClick={() => selectBeach(d.beach)} style={{
                           border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px",
                           cursor:"pointer", display:"grid", alignItems:"center",
-                          gridTemplateColumns:"80px 1fr 60px 110px",
+                          gridTemplateColumns:"72px 1fr auto auto",
                           gap:12, background:"#fff",
                         }}
                           onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
