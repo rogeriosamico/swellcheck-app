@@ -38,17 +38,14 @@ function Calendar({ selected, onSelect }) {
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  const viewMonthMaxIso = isoDate(view.y, view.m, daysInMonth);
-  const viewMonthMinIso = isoDate(view.y, view.m, 1);
-  const canGoPrev = viewMonthMinIso > todayIso;
-  const canGoNext = viewMonthMaxIso < maxIso;
+  while (cells.length % 7 !== 0) cells.push(null);
 
   return (
     <div>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-        <button onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} style={{ ...navBtn, opacity: canGoPrev?1:0.2, cursor: canGoPrev?"pointer":"default" }} disabled={!canGoPrev}>‹</button>
+        <NavButton onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} disabled={false}>‹</NavButton>
         <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
-        <button onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} style={{ ...navBtn, opacity: canGoNext?1:0.2, cursor: canGoNext?"pointer":"default" }} disabled={!canGoNext}>›</button>
+        <NavButton onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} disabled={false}>›</NavButton>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, marginBottom:6 }}>
         {PT_DAYS_SHORT.map(d => (
@@ -81,10 +78,28 @@ function Calendar({ selected, onSelect }) {
   );
 }
 
-const navBtn = {
-  background:"none", border:"1.5px solid #e0e0e0", borderRadius:8,
-  width:32, height:32, cursor:"pointer", fontSize:18, color:"#111",
-};
+function NavButton({ onClick, disabled, children }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={() => !disabled && onClick()}
+      disabled={disabled}
+      onMouseEnter={() => !disabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width:36, height:36, borderRadius:8, flexShrink:0,
+        border: disabled
+          ? "1.5px solid #e8e8e8"
+          : hovered ? "1.5px solid #111" : "1.5px solid #d0d0d0",
+        background: disabled ? "#fafafa" : hovered ? "#f7f7f7" : "#fff",
+        color: disabled ? "#ccc" : "#111",
+        cursor: disabled ? "not-allowed" : "pointer",
+        fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
+        transition:"border 0.12s, background 0.12s, color 0.12s",
+      }}
+    >{children}</button>
+  );
+}
 
 async function fetchForecast(beach, date) {
   const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
