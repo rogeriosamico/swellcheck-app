@@ -187,7 +187,45 @@ function TideChart({ tides, currentHour }) {
   );
 }
 
-function BeachSearch({ onSelect, selectedBeach }) {
+function Scrubber({ value, onChange }) {
+  const trackRef = useRef(null);
+
+  function getHourFromEvent(clientX) {
+    const rect = trackRef.current.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return Math.round(pct * 24);
+  }
+
+  function handleMouseDown(e) {
+    onChange(getHourFromEvent(e.clientX));
+    const onMove = e2 => onChange(getHourFromEvent(e2.clientX));
+    const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    onChange(getHourFromEvent(e.touches[0].clientX));
+    const onMove = e2 => { e2.preventDefault(); onChange(getHourFromEvent(e2.touches[0].clientX)); };
+    const onEnd = () => { window.removeEventListener("touchmove", onMove); window.removeEventListener("touchend", onEnd); };
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
+  }
+
+  const pct = (value / 24) * 100;
+
+  return (
+    <div ref={trackRef}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      style={{ position:"relative", height:44, display:"flex", alignItems:"center", cursor:"pointer", marginTop:8, userSelect:"none" }}>
+      <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99 }} />
+      <div style={{ position:"absolute", left:0, width:`${pct}%`, height:3, background:"#111", borderRadius:99 }} />
+      <div style={{ position:"absolute", left:`${pct}%`, transform:"translateX(-50%)", width:18, height:18, borderRadius:"50%", background:"#111", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }} />
+    </div>
+  );
+}
   const [query, setQuery] = useState(selectedBeach || "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -406,12 +444,7 @@ export default function App() {
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
                   <TideChart tides={tideData?.tides} currentHour={safeHour} />
 
-                  <div style={{ position:"relative", height:44, display:"flex", alignItems:"center", marginTop:8 }}>
-                    <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99, pointerEvents:"none" }} />
-                    <input type="range" min="0" max="24" step="1" value={scrubHour}
-                      onChange={e => setScrubHour(parseInt(e.target.value))}
-                      style={{ position:"relative", width:"100%", cursor:"pointer", background:"transparent", zIndex:1, margin:0, height:44 }} />
-                  </div>
+                  <Scrubber value={scrubHour} onChange={setScrubHour} />
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
                   </div>
