@@ -281,7 +281,8 @@ export default function App() {
       });
   }, [beach, selectedDay]);
 
-  const hourData = beachData?.hours?.[scrubHour];
+  const safeHour = Math.min(scrubHour, 23);
+  const hourData = beachData?.hours?.[safeHour];
   const dayCond = beachData?.cond;
   const dayCondColor = dayCond ? CONDITIONS[dayCond]?.color : "#999";
   const bestStart = beachData?.bestStart;
@@ -382,12 +383,13 @@ export default function App() {
 
                   {/* Maré + scrubber */}
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
-                  <TideChart tides={tideData?.tides} currentHour={scrubHour} />
+                  <TideChart tides={tideData?.tides} currentHour={Math.min(scrubHour, 23)} />
 
-                  <div className="scrubber-wrap" style={{ marginTop:6 }}>
-                    <div className="scrubber-track"></div>
+                  <div style={{ position:"relative", height:20, display:"flex", alignItems:"center", marginTop:6 }}>
+                    <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99, pointerEvents:"none" }} />
                     <input type="range" min="0" max="24" step="1" value={scrubHour}
-                      onChange={e => setScrubHour(parseInt(e.target.value))} />
+                      onChange={e => setScrubHour(parseInt(e.target.value))}
+                      style={{ position:"relative", width:"100%", cursor:"pointer", accentColor:"#111", background:"transparent", zIndex:1, margin:0, height:20 }} />
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
