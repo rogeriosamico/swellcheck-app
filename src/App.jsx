@@ -226,6 +226,8 @@ function Scrubber({ value, onChange }) {
     </div>
   );
 }
+
+function BeachSearch({ onSelect, selectedBeach }) {
   const [query, setQuery] = useState(selectedBeach || "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
@@ -355,11 +357,6 @@ export default function App() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
-        input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-runnable-track { background: transparent; height: 3px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #111; cursor: pointer; margin-top: -10px; }
-        input[type=range]::-moz-range-track { background: transparent; height: 3px; }
-        input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #111; cursor: pointer; border: none; }
       `}</style>
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
         <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
@@ -443,7 +440,6 @@ export default function App() {
 
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
                   <TideChart tides={tideData?.tides} currentHour={scrubHour} />
-
                   <Scrubber value={scrubHour} onChange={setScrubHour} />
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
