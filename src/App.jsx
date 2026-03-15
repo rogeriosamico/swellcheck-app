@@ -21,11 +21,11 @@ function isoDate(y, m, d) {
 }
 
 function parseDateLabel(iso) {
-  const d = new Date(iso + "T12:00:00");
+  const dateObj = new Date(iso + "T12:00:00");
   const today = new Date();
   const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
-  const prefix = iso === todayIso ? "Hoje, " : `${PT_DAYS_FULL[d.getDay()]}, `;
-  return `${prefix}${d.getDate()} de ${PT_MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
+  const prefix = iso === todayIso ? "Hoje, " : `${PT_DAYS_FULL[dateObj.getDay()]}, `;
+  return `${prefix}${dateObj.getDate()} de ${PT_MONTHS[dateObj.getMonth()]} de ${dateObj.getFullYear()}`;
 }
 
 function NavButton({ onClick, disabled, children }) {
@@ -60,7 +60,7 @@ function Calendar({ selected, onSelect }) {
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  for (let day = 1; day <= daysInMonth; day++) cells.push(day);
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
@@ -71,14 +71,14 @@ function Calendar({ selected, onSelect }) {
         <NavButton onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} disabled={false}>›</NavButton>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4, marginBottom:6 }}>
-        {PT_DAYS_SHORT.map(d => (
-          <div key={d} style={{ textAlign:"center", fontSize:11, color:"#999", fontWeight:500 }}>{d}</div>
+        {PT_DAYS_SHORT.map(dayLabel => (
+          <div key={dayLabel} style={{ textAlign:"center", fontSize:11, color:"#999", fontWeight:500 }}>{dayLabel}</div>
         ))}
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4 }}>
-        {cells.map((d, i) => {
-          if (!d) return <div key={i} />;
-          const iso = isoDate(view.y, view.m, d);
+        {cells.map((day, i) => {
+          if (!day) return <div key={i} />;
+          const iso = isoDate(view.y, view.m, day);
           const isSelected = selected === iso;
           const isToday = iso === todayIso;
           const disabled = iso < todayIso || iso > maxIso;
@@ -91,7 +91,7 @@ function Calendar({ selected, onSelect }) {
               fontWeight: isToday ? 700 : 400,
               fontSize:13, cursor: disabled ? "default" : "pointer",
               display:"flex", alignItems:"center", justifyContent:"center",
-            }}>{d}</button>
+            }}>{day}</button>
           );
         })}
       </div>
