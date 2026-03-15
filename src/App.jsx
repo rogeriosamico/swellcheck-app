@@ -120,27 +120,12 @@ function Calendar({ selected, onSelect }) {
 }
 
 function TideChart({ tides, currentHour }) {
-  const containerRef = useRef(null);
-  const [svgWidth, setSvgWidth] = useState(400);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const ro = new ResizeObserver(entries => {
-      setSvgWidth(Math.round(entries[0].contentRect.width));
-    });
-    ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, []);
-
   if (!tides || tides.length === 0) return null;
-
-  const W = svgWidth, H = 90, PAD_X = 8, PAD_Y = 14;
-
+  const W = 400, H = 90, PAD = 8;
   const tidePts = tides.map(t => {
     const [hr, mn] = t.hour.split(":").map(Number);
     return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
   });
-
   const steps = 120;
   const curve = [];
   for (let i = 0; i <= steps; i++) {
@@ -152,36 +137,29 @@ function TideChart({ tides, currentHour }) {
     }
     curve.push({ h, level: num / den });
   }
-
-  const xOf = h => PAD_X + (h / 24) * (W - PAD_X * 2);
-  const yOf = l => H - PAD_Y - (l / 2.6) * (H - PAD_Y * 2);
-
+  const xOf = h => PAD + (h / 24) * (W - PAD * 2);
+  const yOf = l => H - PAD - (l / 2.6) * (H - PAD * 2);
   const linePath = curve.map((pt, i) => `${i === 0 ? "M" : "L"}${xOf(pt.h).toFixed(1)},${yOf(pt.level).toFixed(1)}`).join(" ");
   const fillPath = `${linePath} L${xOf(24)},${H} L${xOf(0)},${H} Z`;
-  const safeHour = Math.min(Math.max(currentHour, 0), 24);
-  const cx = xOf(safeHour);
+  const cx = xOf(currentHour);
 
   return (
-    <div ref={containerRef} style={{ width:"100%" }}>
-      <svg width={W} height={H} style={{ display:"block", overflow:"visible" }}>
-        <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
-        <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        {tidePts.map((p, i) => {
-          const pcx = xOf(p.hour), pcy = yOf(p.level);
-          return (
-            <g key={i}>
-              <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
-              <text x={pcx} y={p.high ? pcy - 10 : pcy + 14}
-                textAnchor="middle" fontSize="11" fill="#888"
-                fontFamily="Inter,sans-serif" fontWeight="500">
-                {fmtTideHr(p.hour)}
-              </text>
-            </g>
-          );
-        })}
-        <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
-      </svg>
-    </div>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:"100%", height:90, display:"block", overflow:"visible" }}>
+      <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
+      <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {tidePts.map((p, i) => {
+        const pcx = xOf(p.hour), pcy = yOf(p.level);
+        return (
+          <g key={i}>
+            <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
+            <text x={pcx} y={p.high ? pcy - 12 : pcy + 16} textAnchor="middle" fontSize="11" fill="#888" fontFamily="Inter,sans-serif" fontWeight="500">
+              {fmtTideHr(p.hour)}
+            </text>
+          </g>
+        );
+      })}
+      <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
+    </svg>
   );
 }
 
@@ -315,9 +293,11 @@ export default function App() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
-        .scrubber-wrap { position: relative; height: 20px; display: flex; align-items: center; }
-        .scrubber-track { position: absolute; left: 0; right: 0; height: 3px; background: #e0e0e0; border-radius: 99px; pointer-events: none; }
-        input[type=range] { position: relative; width: 100%; cursor: pointer; accent-color: #111; background: transparent; z-index: 1; margin: 0; height: 20px; }
+        input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { background: transparent; height: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #111; cursor: pointer; margin-top: -7px; }
+        input[type=range]::-moz-range-track { background: transparent; height: 3px; }
+        input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #111; cursor: pointer; border: none; }
       `}</style>
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
         <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
@@ -411,7 +391,7 @@ export default function App() {
                     <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99, pointerEvents:"none" }} />
                     <input type="range" min="0" max="24" step="1" value={scrubHour}
                       onChange={e => setScrubHour(parseInt(e.target.value))}
-                      style={{ position:"relative", width:"100%", cursor:"pointer", accentColor:"#111", background:"transparent", zIndex:1, margin:0, height:20 }} />
+                      style={{ position:"relative", width:"100%", cursor:"pointer", accentColor:"#111", background:"transparent", zIndex:1, margin:0, height:20, WebkitAppearance:"none", appearance:"none" }} />
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
