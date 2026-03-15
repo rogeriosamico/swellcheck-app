@@ -103,7 +103,7 @@ function Calendar({ selected, onSelect }) {
 function TideChart({ tides }) {
   if (!tides || tides.length === 0) return null;
 
-  const W = 320, H = 80, PAD = 8;
+  const W = 400, H = 80, PAD = 8;
 
   const points = tides.map(t => {
     const [hr, mn] = t.hour.split(":").map(Number);
@@ -135,7 +135,7 @@ function TideChart({ tides }) {
 
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width:"100%", height:90, display:"block", overflow:"visible" }}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:"100%", height:90, display:"block" }}>
         <path d={fillPath} fill="rgba(0,0,0,0.06)" stroke="none" />
         <path d={linePath} fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         {points.map((pt, i) => (
