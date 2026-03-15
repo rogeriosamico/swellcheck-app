@@ -127,7 +127,7 @@ function TideChart({ tides }) {
       data.push(parseFloat((num / den).toFixed(3)));
     }
 
-    const chart = new Chart(canvasRef.current, {
+    const tideChart = new Chart(canvasRef.current, {
       type: "line",
       data: {
         labels: data.map((_, i) => i),
@@ -153,12 +153,12 @@ function TideChart({ tides }) {
           onComplete: () => {
             if (!labelsRef.current) return;
             labelsRef.current.innerHTML = "";
-            const area = chart.chartArea;
-            const yScale = chart.scales.y;
-            const W = area.right - area.left;
-            points.forEach(p => {
-              const x = area.left + (p.hour / 24) * W;
-              const y = yScale.getPixelForValue(p.level);
+            const chartArea = tideChart.chartArea;
+            const yScale = tideChart.scales.y;
+            const chartWidth = chartArea.right - chartArea.left;
+            points.forEach(pt => {
+              const x = chartArea.left + (pt.hour / 24) * chartWidth;
+              const y = yScale.getPixelForValue(pt.level);
               const dot = document.createElement("div");
               dot.style.cssText = `position:absolute;width:5px;height:5px;background:#111;border-radius:50%;transform:translate(-50%,-50%);left:${x}px;top:${y}px;`;
               labelsRef.current.appendChild(dot);
@@ -168,7 +168,7 @@ function TideChart({ tides }) {
       }
     });
 
-    return () => chart.destroy();
+    return () => tideChart.destroy();
   }, [tides]);
 
   if (!tides) return null;
