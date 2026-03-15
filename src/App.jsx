@@ -319,9 +319,9 @@ export default function App() {
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
         input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-runnable-track { background: transparent; height: 3px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #111; cursor: pointer; margin-top: -7px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #111; cursor: pointer; margin-top: -10px; }
         input[type=range]::-moz-range-track { background: transparent; height: 3px; }
-        input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #111; cursor: pointer; border: none; }
+        input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #111; cursor: pointer; border: none; }
       `}</style>
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
         <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
@@ -406,11 +406,11 @@ export default function App() {
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
                   <TideChart tides={tideData?.tides} currentHour={safeHour} />
 
-                  <div style={{ position:"relative", height:20, display:"flex", alignItems:"center", marginTop:8 }}>
+                  <div style={{ position:"relative", height:44, display:"flex", alignItems:"center", marginTop:8 }}>
                     <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99, pointerEvents:"none" }} />
                     <input type="range" min="0" max="24" step="1" value={scrubHour}
                       onChange={e => setScrubHour(parseInt(e.target.value))}
-                      style={{ position:"relative", width:"100%", cursor:"pointer", background:"transparent", zIndex:1, margin:0, height:20 }} />
+                      style={{ position:"relative", width:"100%", cursor:"pointer", background:"transparent", zIndex:1, margin:0, height:44 }} />
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
