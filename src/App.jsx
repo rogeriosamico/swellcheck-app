@@ -238,8 +238,8 @@ async function fetchForecast(beach, date) {
   return res.json();
 }
 
-async function fetchTide(date) {
-  const res = await fetch(`${API_BASE}/tide?date=${date}`);
+async function fetchTide(date, beach) {
+  const res = await fetch(`${API_BASE}/tide?date=${date}&beach=${encodeURIComponent(beach)}`);
   if (!res.ok) throw new Error("Erro na API");
   return res.json();
 }
@@ -279,7 +279,7 @@ export default function App() {
     setBeachError(null);
     Promise.all([
       fetchForecast(beach, selectedDay),
-      fetchTide(selectedDay),
+      fetchTide(selectedDay, beach),
     ])
       .then(([forecast, tide]) => {
         setBeachData(forecast);
@@ -370,7 +370,7 @@ export default function App() {
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                             <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
                             <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>
-                              {kj} J <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
+                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
                             </div>
                           </div>
                           <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
