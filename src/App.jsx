@@ -120,12 +120,27 @@ function Calendar({ selected, onSelect }) {
 }
 
 function TideChart({ tides, currentHour }) {
+  const containerRef = useRef(null);
+  const [svgWidth, setSvgWidth] = useState(400);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      setSvgWidth(Math.round(entries[0].contentRect.width));
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   if (!tides || tides.length === 0) return null;
-  const W = 400, H = 90, PAD = 8;
+
+  const W = svgWidth, H = 90, PAD_X = 8, PAD_Y = 14;
+
   const tidePts = tides.map(t => {
     const [hr, mn] = t.hour.split(":").map(Number);
     return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
   });
+
   const steps = 120;
   const curve = [];
   for (let i = 0; i <= steps; i++) {
@@ -137,29 +152,36 @@ function TideChart({ tides, currentHour }) {
     }
     curve.push({ h, level: num / den });
   }
-  const xOf = h => PAD + (h / 24) * (W - PAD * 2);
-  const yOf = l => H - PAD - (l / 2.6) * (H - PAD * 2);
+
+  const xOf = h => PAD_X + (h / 24) * (W - PAD_X * 2);
+  const yOf = l => H - PAD_Y - (l / 2.6) * (H - PAD_Y * 2);
+
   const linePath = curve.map((pt, i) => `${i === 0 ? "M" : "L"}${xOf(pt.h).toFixed(1)},${yOf(pt.level).toFixed(1)}`).join(" ");
   const fillPath = `${linePath} L${xOf(24)},${H} L${xOf(0)},${H} Z`;
-  const cx = xOf(currentHour);
+  const safeHour = Math.min(Math.max(currentHour, 0), 24);
+  const cx = xOf(safeHour);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:"100%", height:90, display:"block", overflow:"visible" }}>
-      <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
-      <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {tidePts.map((p, i) => {
-        const pcx = xOf(p.hour), pcy = yOf(p.level);
-        return (
-          <g key={i}>
-            <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
-            <text x={pcx} y={p.high ? pcy - 12 : pcy + 16} textAnchor="middle" fontSize="11" fill="#888" fontFamily="Inter,sans-serif" fontWeight="500">
-              {fmtTideHr(p.hour)}
-            </text>
-          </g>
-        );
-      })}
-      <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
-    </svg>
+    <div ref={containerRef} style={{ width:"100%" }}>
+      <svg width={W} height={H} style={{ display:"block", overflow:"visible" }}>
+        <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
+        <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        {tidePts.map((p, i) => {
+          const pcx = xOf(p.hour), pcy = yOf(p.level);
+          return (
+            <g key={i}>
+              <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
+              <text x={pcx} y={p.high ? pcy - 10 : pcy + 14}
+                textAnchor="middle" fontSize="11" fill="#888"
+                fontFamily="Inter,sans-serif" fontWeight="500">
+                {fmtTideHr(p.hour)}
+              </text>
+            </g>
+          );
+        })}
+        <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
+      </svg>
+    </div>
   );
 }
 
