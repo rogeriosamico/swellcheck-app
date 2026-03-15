@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Chart, LineElement, PointElement, LineController, CategoryScale, LinearScale, Filler } from "chart.js";
-Chart.register(LineElement, PointElement, LineController, CategoryScale, LinearScale, Filler);
 
 const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe"];
 const API_BASE = "https://swellcheck.vercel.app";
@@ -103,88 +101,52 @@ function Calendar({ selected, onSelect }) {
 }
 
 function TideChart({ tides }) {
-  const canvasRef = useRef(null);
-  const labelsRef = useRef(null);
+  if (!tides || tides.length === 0) return null;
 
-  useEffect(() => {
-    if (!tides || !canvasRef.current) return;
+  const W = 320, H = 80, PAD = 8;
 
-    const points = tides.map(t => {
-      const [h, m] = t.hour.split(":").map(Number);
-      return { hour: h + m / 60, level: t.level, high: t.level > 1.2 };
-    });
+  const points = tides.map(t => {
+    const [hr, mn] = t.hour.split(":").map(Number);
+    return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2, label: t.hour };
+  });
 
-    const steps = 97;
-    const data = [];
-    for (let i = 0; i < steps; i++) {
-      const h = i / (steps - 1) * 24;
-      let num = 0, den = 0;
-      for (const p of points) {
-        const d = Math.abs(h - p.hour);
-        const w = Math.exp(-d * d / 7);
-        num += p.level * w; den += w;
-      }
-      data.push(parseFloat((num / den).toFixed(3)));
+  // Gera curva interpolada
+  const steps = 120;
+  const curve = [];
+  for (let i = 0; i <= steps; i++) {
+    const h = (i / steps) * 24;
+    let num = 0, den = 0;
+    for (const p of points) {
+      const dist = Math.abs(h - p.hour);
+      const w = Math.exp(-dist * dist / 7);
+      num += p.level * w;
+      den += w;
     }
+    curve.push({ h, level: num / den });
+  }
 
-    const tideChart = new Chart(canvasRef.current, {
-      type: "line",
-      data: {
-        labels: data.map((_, i) => i),
-        datasets: [{
-          data,
-          borderColor: "#111",
-          borderWidth: 1.5,
-          pointRadius: 0,
-          tension: 0.4,
-          fill: true,
-          backgroundColor: "rgba(0,0,0,0.06)",
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: {
-          x: { display: false },
-          y: { display: false, min: 0.1, max: 2.6 }
-        },
-        animation: {
-          onComplete: () => {
-            if (!labelsRef.current) return;
-            labelsRef.current.innerHTML = "";
-            const chartArea = tideChart.chartArea;
-            const yScale = tideChart.scales.y;
-            const chartWidth = chartArea.right - chartArea.left;
-            points.forEach(pt => {
-              const x = chartArea.left + (pt.hour / 24) * chartWidth;
-              const y = yScale.getPixelForValue(pt.level);
-              const dot = document.createElement("div");
-              dot.style.cssText = `position:absolute;width:5px;height:5px;background:#111;border-radius:50%;transform:translate(-50%,-50%);left:${x}px;top:${y}px;`;
-              labelsRef.current.appendChild(dot);
-            });
-          }
-        }
-      }
-    });
+  const minL = 0, maxL = 2.6;
+  const xOf = h => PAD + (h / 24) * (W - PAD * 2);
+  const yOf = l => H - PAD - ((l - minL) / (maxL - minL)) * (H - PAD * 2);
 
-    return () => tideChart.destroy();
-  }, [tides]);
-
-  if (!tides) return null;
-  const points = tides.map(t => ({ ...t, high: t.level > 1.2 }));
+  // Polyline path
+  const linePath = curve.map((pt, i) => `${i === 0 ? "M" : "L"}${xOf(pt.h).toFixed(1)},${yOf(pt.level).toFixed(1)}`).join(" ");
+  const fillPath = `${linePath} L${xOf(24).toFixed(1)},${H} L${xOf(0).toFixed(1)},${H} Z`;
 
   return (
     <div>
-      <div style={{ position:"relative", width:"100%", height:90 }}>
-        <canvas ref={canvasRef} />
-        <div ref={labelsRef} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", pointerEvents:"none" }} />
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:`repeat(${points.length}, 1fr)`, gap:4, marginTop:12 }}>
-        {points.map((t, i) => (
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width:"100%", height:90, display:"block", overflow:"visible" }}>
+        <path d={fillPath} fill="rgba(0,0,0,0.06)" stroke="none" />
+        <path d={linePath} fill="none" stroke="#111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((pt, i) => (
+          <circle key={i} cx={xOf(pt.hour)} cy={yOf(pt.level)} r="3" fill="#111" />
+        ))}
+      </svg>
+      <div style={{ display:"grid", gridTemplateColumns:`repeat(${points.length}, 1fr)`, gap:4, marginTop:8 }}>
+        {points.map((pt, i) => (
           <div key={i} style={{ textAlign:"center" }}>
-            <div style={{ fontSize:10, color:"#999" }}>{t.high ? "↑ Alta" : "↓ Baixa"}</div>
-            <div style={{ fontSize:12, fontWeight:600, color:"#111" }}>{t.hour}</div>
+            <div style={{ fontSize:10, color:"#999" }}>{pt.high ? "↑ Alta" : "↓ Baixa"}</div>
+            <div style={{ fontSize:12, fontWeight:600, color:"#111" }}>{pt.label}</div>
           </div>
         ))}
       </div>
