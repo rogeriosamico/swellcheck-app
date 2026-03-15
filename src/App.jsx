@@ -408,7 +408,7 @@ export default function App() {
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                             <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
                             <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>
-                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
+                              {kj} J <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
                             </div>
                           </div>
                           <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
@@ -442,10 +442,10 @@ export default function App() {
                   <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia disponível para o dia selecionado.</div>
                 ) : (
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {goodBeaches.map(d => {
-                      const c = CONDITIONS[d.cond];
+                    {goodBeaches.map(beach2 => {
+                      const c = CONDITIONS[beach2.cond];
                       return (
-                        <div key={d.beach} onClick={() => selectBeach(d.beach)} style={{
+                        <div key={beach2.beach} onClick={() => selectBeach(beach2.beach)} style={{
                           border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px",
                           cursor:"pointer", display:"grid", alignItems:"center",
                           gridTemplateColumns:"72px 1fr auto auto",
@@ -463,9 +463,9 @@ export default function App() {
                             <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
                             {c.label}
                           </span>
-                          <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{d.beach}</span>
-                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{d.height}m</span>
-                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{d.windSpeed} km/h {d.windDir}</span>
+                          <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{beach2.beach}</span>
+                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.height}m</span>
+                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.windSpeed} km/h {beach2.windDir}</span>
                         </div>
                       );
                     })}
