@@ -366,20 +366,21 @@ export default function App() {
                     {(() => {
                       const energy = beachData.swellEnergy ?? 0;
                       const kj = beachData.swellKj ?? 0;
-                      const barColor = energy <= 3 ? "#a07850" : energy <= 5 ? "#c8a800" : energy <= 8 ? "#2e9e6a" : "#d04040";
+                      const barColor = energy <= 2 ? "#a07850" : energy <= 4 ? "#c8a800" : energy <= 6 ? "#2e9e6a" : energy <= 8 ? "#e07820" : "#d04040";
+                      const label = kj < 500 ? "Muito fraco" : kj < 1000 ? "Fraco / Médio" : kj < 2000 ? "Médio / Forte" : kj < 3000 ? "Forte" : "Muito forte";
                       return (
                         <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                             <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
                             <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>
-                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {energy}/10</span>
+                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {label}</span>
                             </div>
                           </div>
                           <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
                             <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
                           </div>
                           <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
-                            <span style={{ fontSize:11, color:"#bbb" }}>Fraco</span>
+                            <span style={{ fontSize:11, color:"#bbb" }}>Muito fraco</span>
                             <span style={{ fontSize:11, color:"#bbb" }}>Muito forte</span>
                           </div>
                         </div>
