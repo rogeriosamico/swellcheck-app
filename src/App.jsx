@@ -364,24 +364,27 @@ export default function App() {
                       </div>
                     ))}
                     {(() => {
-                      const energy = beachData.swellEnergy ?? 0;
                       const kj = beachData.swellKj ?? 0;
-                      const barColor = energy <= 2 ? "#a07850" : energy <= 4 ? "#c8a800" : energy <= 6 ? "#2e9e6a" : energy <= 8 ? "#e07820" : "#d04040";
-                      const label = kj < 500 ? "Muito fraco" : kj < 1000 ? "Fraco / Médio" : kj < 2000 ? "Médio / Forte" : kj < 3000 ? "Forte" : "Muito forte";
+                      const active = kj < 500 ? 1 : kj < 1000 ? 2 : kj < 2000 ? 3 : kj < 3000 ? 4 : 5;
+                      const labels = ["Fraco", "Médio", "Bom", "Forte", "Muito forte"];
+                      const colors = ["#a07850", "#c8a800", "#2e9e6a", "#e07820", "#d04040"];
+                      const color = colors[active - 1];
+                      const label = labels[active - 1];
                       return (
                         <div style={{ gridColumn:"1 / -1", background:"#f7f7f7", borderRadius:10, padding:"12px" }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                             <div style={{ fontSize:11, color:"#999", fontWeight:500 }}>Força do swell</div>
                             <div style={{ fontSize:15, fontWeight:700, color:"#111" }}>
-                              {kj} Kj <span style={{ fontSize:11, color:"#bbb", fontWeight:400 }}>· {label}</span>
+                              {kj} Kj <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>· {label}</span>
                             </div>
                           </div>
-                          <div style={{ background:"#e8e8e8", borderRadius:99, height:6, overflow:"hidden" }}>
-                            <div style={{ width:`${energy * 10}%`, background:barColor, height:"100%", borderRadius:99 }} />
-                          </div>
-                          <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
-                            <span style={{ fontSize:11, color:"#bbb" }}>Muito fraco</span>
-                            <span style={{ fontSize:11, color:"#bbb" }}>Muito forte</span>
+                          <div style={{ display:"flex", gap:3 }}>
+                            {[0,1,2,3,4].map(i => (
+                              <div key={i} style={{
+                                flex:1, height:8, borderRadius:4,
+                                background: i < active ? color : "#e0e0e0",
+                              }} />
+                            ))}
                           </div>
                         </div>
                       );
