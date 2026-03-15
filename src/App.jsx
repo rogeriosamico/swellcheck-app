@@ -120,12 +120,29 @@ function Calendar({ selected, onSelect }) {
 }
 
 function TideChart({ tides, currentHour }) {
+  const containerRef = useRef(null);
+  const [svgWidth, setSvgWidth] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    setSvgWidth(containerRef.current.getBoundingClientRect().width);
+    const ro = new ResizeObserver(entries => {
+      setSvgWidth(Math.round(entries[0].contentRect.width));
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   if (!tides || tides.length === 0) return null;
-  const W = 400, H = 90, PAD = 8;
+  if (svgWidth === 0) return <div ref={containerRef} style={{ width:"100%", height:90 }} />;
+
+  const W = svgWidth, H = 90, PAD_X = 8, PAD_Y = 14;
+
   const tidePts = tides.map(t => {
     const [hr, mn] = t.hour.split(":").map(Number);
     return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
   });
+
   const steps = 120;
   const curve = [];
   for (let i = 0; i <= steps; i++) {
@@ -137,29 +154,36 @@ function TideChart({ tides, currentHour }) {
     }
     curve.push({ h, level: num / den });
   }
-  const xOf = h => PAD + (h / 24) * (W - PAD * 2);
-  const yOf = l => H - PAD - (l / 2.6) * (H - PAD * 2);
+
+  const xOf = h => PAD_X + (h / 24) * (W - PAD_X * 2);
+  const yOf = l => H - PAD_Y - (l / 2.6) * (H - PAD_Y * 2);
+
   const linePath = curve.map((pt, i) => `${i === 0 ? "M" : "L"}${xOf(pt.h).toFixed(1)},${yOf(pt.level).toFixed(1)}`).join(" ");
   const fillPath = `${linePath} L${xOf(24)},${H} L${xOf(0)},${H} Z`;
-  const cx = xOf(currentHour);
+  const safeHour = Math.min(Math.max(currentHour, 0), 24);
+  const cx = xOf(safeHour);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width:"100%", height:90, display:"block", overflow:"visible" }}>
-      <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
-      <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      {tidePts.map((p, i) => {
-        const pcx = xOf(p.hour), pcy = yOf(p.level);
-        return (
-          <g key={i}>
-            <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
-            <text x={pcx} y={p.high ? pcy - 12 : pcy + 16} textAnchor="middle" fontSize="11" fill="#888" fontFamily="Inter,sans-serif" fontWeight="500">
-              {fmtTideHr(p.hour)}
-            </text>
-          </g>
-        );
-      })}
-      <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
-    </svg>
+    <div ref={containerRef} style={{ width:"100%" }}>
+      <svg width={W} height={H} style={{ display:"block", overflow:"visible" }}>
+        <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
+        <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        {tidePts.map((p, i) => {
+          const pcx = xOf(p.hour), pcy = yOf(p.level);
+          return (
+            <g key={i}>
+              <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
+              <text x={pcx} y={p.high ? pcy - 10 : pcy + 14}
+                textAnchor="middle" fontSize="11" fill="#888"
+                fontFamily="Inter,sans-serif" fontWeight="500">
+                {fmtTideHr(p.hour)}
+              </text>
+            </g>
+          );
+        })}
+        <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
+      </svg>
+    </div>
   );
 }
 
@@ -327,7 +351,6 @@ export default function App() {
               ) : beachData && hourData ? (
                 <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
 
-                  {/* Veredito + melhor horário */}
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ width:14, height:14, borderRadius:"50%", background:dayCondColor, flexShrink:0, display:"inline-block" }} />
@@ -342,7 +365,6 @@ export default function App() {
                   </div>
                   <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
 
-                  {/* Horário selecionado */}
                   <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
                     <span style={{ fontSize:15, fontWeight:700, color:"#111" }}>Condições às {fmtHr(scrubHour)}</span>
                     <span style={{ fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20, background: CONDITIONS[hourData.cond]?.color + "18", color: CONDITIONS[hourData.cond]?.color }}>
@@ -350,7 +372,6 @@ export default function App() {
                     </span>
                   </div>
 
-                  {/* Grid de dados */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:8 }}>
                     {[
                       { label:"Altura total",     value:`${hourData.height}m` },
@@ -365,8 +386,7 @@ export default function App() {
                     ))}
                   </div>
 
-                  {/* Força do swell */}
-                  <div style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px", marginBottom:0 }}>
+                  <div style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                       <div style={{ fontSize:10, color:"#999" }}>Força do swell</div>
                       <div style={{ fontSize:13, fontWeight:600, color:"#111" }}>
@@ -383,15 +403,14 @@ export default function App() {
 
                   <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
 
-                  {/* Maré + scrubber */}
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
-                  <TideChart tides={tideData?.tides} currentHour={Math.min(scrubHour, 23)} />
+                  <TideChart tides={tideData?.tides} currentHour={safeHour} />
 
-                  <div style={{ position:"relative", height:20, display:"flex", alignItems:"center", marginTop:6 }}>
+                  <div style={{ position:"relative", height:20, display:"flex", alignItems:"center", marginTop:8 }}>
                     <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99, pointerEvents:"none" }} />
                     <input type="range" min="0" max="24" step="1" value={scrubHour}
                       onChange={e => setScrubHour(parseInt(e.target.value))}
-                      style={{ position:"relative", width:"100%", cursor:"pointer", accentColor:"#111", background:"transparent", zIndex:1, margin:0, height:20, WebkitAppearance:"none", appearance:"none" }} />
+                      style={{ position:"relative", width:"100%", cursor:"pointer", background:"transparent", zIndex:1, margin:0, height:20 }} />
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
                     <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
