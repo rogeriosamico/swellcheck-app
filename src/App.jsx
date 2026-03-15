@@ -277,6 +277,8 @@ export default function App() {
     if (!beach) return;
     setBeachLoading(true);
     setBeachError(null);
+    setBeachData(null);
+    setTideData(null);
     Promise.all([
       fetchForecast(beach, selectedDay),
       fetchTide(selectedDay, beach),
