@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe"];
+const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe", "Madeiro", "Baía Formosa", "Cacimba do Padre", "Jericoacoara", "Tourinhos"];
 const API_BASE = "https://swellcheck.vercel.app";
 
 const CONDITIONS = {
