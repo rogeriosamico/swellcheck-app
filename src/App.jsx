@@ -442,7 +442,7 @@ export default function App() {
                   <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
 
                   <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
-                  <TideChart tides={tideData?.tides} currentHour={safeHour} />
+                  <TideChart tides={tideData?.tides} currentHour={scrubHour} />
 
                   <Scrubber value={scrubHour} onChange={setScrubHour} />
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
