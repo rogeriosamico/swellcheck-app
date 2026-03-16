@@ -67,6 +67,68 @@ function SkeletonPulse({ width = "100%", height = 14, borderRadius = 6, style = 
   );
 }
 
+function BeachCardDetailSkeleton() {
+  return (
+    <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
+
+      {/* Veredito + melhor horário */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <SkeletonPulse width={14} height={14} borderRadius="50%" />
+          <SkeletonPulse width={100} height={32} borderRadius={8} />
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
+          <SkeletonPulse width={60} height={10} />
+          <SkeletonPulse width={80} height={14} />
+        </div>
+      </div>
+
+      <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
+
+      {/* Condições às Xh + chip */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+        <SkeletonPulse width={120} height={16} />
+        <SkeletonPulse width={56} height={22} borderRadius={20} />
+      </div>
+
+      {/* Grid 2x2 */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:8 }}>
+        {[0,1,2,3].map(i => (
+          <div key={i} style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+            <SkeletonPulse width="50%" height={10} />
+            <SkeletonPulse width="80%" height={14} />
+          </div>
+        ))}
+      </div>
+
+      {/* Barra de swell */}
+      <div style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+          <SkeletonPulse width={80} height={10} />
+          <SkeletonPulse width={60} height={14} />
+        </div>
+        <div style={{ display:"flex", gap:3 }}>
+          {[0,1,2,3,4].map(i => (
+            <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex:1 }} />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
+
+      {/* Maré */}
+      <SkeletonPulse width={40} height={10} style={{ marginBottom:10 }} />
+      <SkeletonPulse width="100%" height={90} borderRadius={8} style={{ marginBottom:8 }} />
+      {/* Scrubber */}
+      <SkeletonPulse width="100%" height={44} borderRadius={8} />
+      <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
+        {[0,1,2,3,4].map(i => <SkeletonPulse key={i} width={28} height={10} />)}
+      </div>
+
+    </div>
+  );
+}
+
 function BeachCardSkeleton() {
   return (
     <div style={{
@@ -369,7 +431,7 @@ export default function App() {
         setScrubHour(currentHour);
       })
       .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
-  }, [beach, selectedDay]);
+  }, [beach, selectedDay, currentHour]);
 
   // Carrega lista de praias via /forecast-all
   useEffect(() => {
@@ -426,7 +488,7 @@ export default function App() {
           <div style={{ marginTop:24 }}>
             {beach ? (
               beachLoading ? (
-                <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
+                <BeachCardDetailSkeleton />
               ) : beachError ? (
                 <div style={{ fontSize:14, color:"#d04040", textAlign:"center", padding:"32px 0" }}>{beachError}</div>
               ) : beachData && hourData ? (
