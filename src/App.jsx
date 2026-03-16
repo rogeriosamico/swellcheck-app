@@ -557,10 +557,6 @@ export default function App() {
               ) : null
             ) : (
               <div>
-                <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:12 }}>
-                  Condições para {parseDateLabel(selectedDay).toLowerCase()}
-                </div>
-
                 {/* Skeleton ou lista real */}
                 <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                   {listLoading
