@@ -183,6 +183,24 @@ function BeachDetailSkeleton() {
   );
 }
 
+// ─── BackButton ───────────────────────────────────────────────────────────────
+
+function BackButton({ onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Voltar para lista de praias"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#111", fontSize: 13, fontWeight: 500, padding: "4px 0", marginLeft: -2, textDecoration: hovered ? "underline" : "none", textUnderlineOffset: 3 }}
+    >
+      <span style={{ fontSize: 24, lineHeight: 1, marginTop: -1 }}>‹</span>
+      Voltar
+    </button>
+  );
+}
+
 // ─── NavButton ────────────────────────────────────────────────────────────────
 
 function NavButton({ onClick, disabled, children, ariaLabel }) {
@@ -564,36 +582,37 @@ function BeachPage({ beach, initialDay, onBack }) {
   return (
     <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "0 0 80px" }}>
 
-      {/* Header sticky */}
-      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {/* Header sticky — 2 linhas */}
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f0f0f0" }}>
 
-          {/* Botão voltar — 44px mínimo para toque */}
-          <button onClick={onBack} aria-label="Voltar para lista de praias"
-            style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "none", border: "none", cursor: "pointer", borderRadius: 10, color: "#111", fontSize: 24, marginLeft: -8 }}>
-            ‹
-          </button>
+        {/* Linha 1: voltar + logo */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
+          <BackButton onClick={onBack} />
+          <div style={{ fontSize: 11, color: "#999", fontWeight: 500 }}>Swell check</div>
+          <div style={{ width: 60 }} />
+        </div>
 
-          {/* Nome */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, color: "#999", fontWeight: 500, marginBottom: 1 }}>Swell check</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#111", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {beach}{meta ? `, ${meta.state}` : ""}
-            </div>
+        {/* Linha 2: nome da praia + navegação de datas */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px 12px" }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {beach}{meta ? `, ${meta.state}` : ""}
           </div>
-
-          {/* Navegação de datas */}
           <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
             <NavButton ariaLabel="Dia anterior" onClick={() => setPageDay(addDays(pageDay, -1))} disabled={pageDay <= todayIso}>‹</NavButton>
             <button onClick={() => setShowCal(true)}
               aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
-              style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #e0e0e0", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#111", whiteSpace: "nowrap" }}>
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 8, border: "1.5px solid #e0e0e0", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#111", whiteSpace: "nowrap" }}>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
+                <rect x="1" y="3" width="14" height="12" rx="2" stroke="#111" strokeWidth="1.5" />
+                <path d="M1 7h14" stroke="#111" strokeWidth="1.5" />
+                <path d="M5 1v3M11 1v3" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
               {shortDateLabel(pageDay)}
             </button>
             <NavButton ariaLabel="Próximo dia" onClick={() => setPageDay(addDays(pageDay, 1))} disabled={pageDay >= maxIso}>›</NavButton>
           </div>
-
         </div>
+
       </div>
 
       {/* Conteúdo */}
