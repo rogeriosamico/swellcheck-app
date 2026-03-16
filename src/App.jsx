@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 
 const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe", "Madeiro", "Baía Formosa", "Cacimba do Padre", "Jericoacoara", "Tourinhos"];
+
+const BEACHES_META = {
+  "Paiva":             { state: "PE", country: "Brasil" },
+  "Itapuama":          { state: "PE", country: "Brasil" },
+  "Porto de Galinhas": { state: "PE", country: "Brasil" },
+  "Maracaípe":         { state: "PE", country: "Brasil" },
+  "Madeiro":           { state: "RN", country: "Brasil" },
+  "Baía Formosa":      { state: "RN", country: "Brasil" },
+  "Cacimba do Padre":  { state: "PE", country: "Brasil" },
+  "Jericoacoara":      { state: "CE", country: "Brasil" },
+  "Tourinhos":         { state: "RN", country: "Brasil" },
+};
+
 const API_BASE = "https://swellcheck.vercel.app";
 
 const CONDITIONS = {
@@ -10,25 +23,48 @@ const CONDITIONS = {
   storm:  { label: "Storm",  color: "#d04040" },
 };
 
-const COND_DESCS = { flat:"Não vale a pena", marola:"Vai depender", bom:"Vai surfar!", storm:"Cuidado" };
+const COND_DESCS = { flat: "Não vale a pena", marola: "Vai depender", bom: "Vai surfar!", storm: "Cuidado" };
 const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
 
 const PT_DAYS_FULL  = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-const PT_MONTHS     = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const PT_DAYS_SHORT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const PT_MONTHS     = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const SW_COLORS     = ["#a07850","#c8a800","#2e9e6a","#e07820","#d04040"];
 const SW_LABELS     = ["Fraco","Médio","Bom","Forte","Muito forte"];
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function isoDate(y, m, d) {
-  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function getToday() {
+  const t = new Date();
+  return isoDate(t.getFullYear(), t.getMonth(), t.getDate());
+}
+
+function getMaxDay() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return isoDate(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function addDays(iso, n) {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return isoDate(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function parseDateLabel(iso) {
-  const dateObj = new Date(iso + "T12:00:00");
-  const today = new Date();
-  const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
-  const prefix = iso === todayIso ? "Hoje, " : `${PT_DAYS_FULL[dateObj.getDay()]}, `;
-  return `${prefix}${dateObj.getDate()} de ${PT_MONTHS[dateObj.getMonth()]} de ${dateObj.getFullYear()}`;
+  const d = new Date(iso + "T12:00:00");
+  const prefix = iso === getToday() ? "Hoje, " : `${PT_DAYS_FULL[d.getDay()]}, `;
+  return `${prefix}${d.getDate()} de ${PT_MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+function shortDateLabel(iso) {
+  if (iso === getToday()) return "Hoje";
+  const d = new Date(iso + "T12:00:00");
+  return `${PT_DAYS_SHORT[d.getDay()]}, ${d.getDate()} de ${PT_MONTHS[d.getMonth()]}`;
 }
 
 function fmtHr(hr) {
@@ -42,7 +78,7 @@ function fmtTideHr(h) {
   const mn = Math.round((h - hr) * 60);
   const ampm = hr < 12 ? "am" : "pm";
   const disp = hr === 0 || hr === 24 ? 12 : hr > 12 ? hr - 12 : hr;
-  return `${disp}:${mn < 10 ? "0"+mn : mn}${ampm}`;
+  return `${disp}:${mn < 10 ? "0" + mn : mn}${ampm}`;
 }
 
 function swellSegs(kj) {
@@ -53,12 +89,33 @@ function swellSegs(kj) {
   return 5;
 }
 
+// ─── API ──────────────────────────────────────────────────────────────────────
+
+async function fetchForecastAll(date) {
+  const res = await fetch(`${API_BASE}/forecast-all?date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return (await res.json()).beaches;
+}
+
+async function fetchForecast(beach, date) {
+  const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return res.json();
+}
+
+async function fetchTide(date, beach) {
+  const res = await fetch(`${API_BASE}/tide?date=${date}&beach=${encodeURIComponent(beach)}`);
+  if (!res.ok) throw new Error("Erro na API");
+  return res.json();
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
+
 function SkeletonPulse({ width = "100%", height = 14, borderRadius = 6, style = {} }) {
   return (
     <div style={{
       width, height, borderRadius,
-      background: "linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%)",
+      background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)",
       backgroundSize: "200% 100%",
       animation: "skeletonPulse 1.4s ease-in-out infinite",
       flexShrink: 0,
@@ -67,127 +124,114 @@ function SkeletonPulse({ width = "100%", height = 14, borderRadius = 6, style = 
   );
 }
 
-function BeachCardDetailSkeleton() {
+function HomeCardSkeleton() {
   return (
-    <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
-
-      {/* Veredito + melhor horário */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <SkeletonPulse width={14} height={14} borderRadius="50%" />
-          <SkeletonPulse width={100} height={32} borderRadius={8} />
-        </div>
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
-          <SkeletonPulse width={60} height={10} />
-          <SkeletonPulse width={80} height={14} />
-        </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "18px 20px" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+        <SkeletonPulse width="55%" height={18} />
+        <SkeletonPulse width="35%" height={12} />
       </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+        <SkeletonPulse width={40} height={10} />
+        <SkeletonPulse width={40} height={20} />
+      </div>
+      <SkeletonPulse width={76} height={32} borderRadius={20} />
+    </div>
+  );
+}
 
-      <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
-
-      {/* Condições às Xh + chip */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+function BeachDetailSkeleton() {
+  return (
+    <div style={{ border: "1.5px solid #e0e0e0", borderRadius: 14, padding: "24px 20px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <SkeletonPulse width={110} height={36} borderRadius={8} />
+          <SkeletonPulse width={160} height={12} />
+        </div>
+        <SkeletonPulse width={80} height={12} />
+      </div>
+      <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <SkeletonPulse width={120} height={16} />
         <SkeletonPulse width={56} height={22} borderRadius={20} />
       </div>
-
-      {/* Grid 2x2 */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
         {[0,1,2,3].map(i => (
-          <div key={i} style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px", display:"flex", flexDirection:"column", gap:6 }}>
+          <div key={i} style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
             <SkeletonPulse width="50%" height={10} />
-            <SkeletonPulse width="80%" height={14} />
+            <SkeletonPulse width="75%" height={14} />
           </div>
         ))}
       </div>
-
-      {/* Barra de swell */}
-      <div style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+      <div style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
           <SkeletonPulse width={80} height={10} />
-          <SkeletonPulse width={60} height={14} />
+          <SkeletonPulse width={60} height={12} />
         </div>
-        <div style={{ display:"flex", gap:3 }}>
-          {[0,1,2,3,4].map(i => (
-            <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex:1 }} />
-          ))}
+        <div style={{ display: "flex", gap: 3 }}>
+          {[0,1,2,3,4].map(i => <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex: 1 }} />)}
         </div>
       </div>
-
-      <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
-
-      {/* Maré */}
-      <SkeletonPulse width={40} height={10} style={{ marginBottom:10 }} />
-      <SkeletonPulse width="100%" height={90} borderRadius={8} style={{ marginBottom:8 }} />
-      {/* Scrubber */}
+      <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
+      <SkeletonPulse width={40} height={10} style={{ marginBottom: 10 }} />
+      <SkeletonPulse width="100%" height={90} borderRadius={8} style={{ marginBottom: 8 }} />
       <SkeletonPulse width="100%" height={44} borderRadius={8} />
-      <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
         {[0,1,2,3,4].map(i => <SkeletonPulse key={i} width={28} height={10} />)}
       </div>
-
     </div>
   );
 }
 
-function BeachCardSkeleton() {
-  return (
-    <div style={{
-      border: "1.5px solid #e0e0e0", borderRadius: 12,
-      padding: "14px 16px",
-      display: "grid",
-      alignItems: "center",
-      gridTemplateColumns: "72px 1fr auto auto",
-      gap: 12,
-    }}>
-      <SkeletonPulse width={72} height={24} borderRadius={20} />
-      <SkeletonPulse width="60%" height={16} />
-      <SkeletonPulse width={32} height={14} />
-      <SkeletonPulse width={56} height={14} />
-    </div>
-  );
-}
+// ─── NavButton ────────────────────────────────────────────────────────────────
 
-function NavButton({ onClick, disabled, children }) {
+function NavButton({ onClick, disabled, children, ariaLabel }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <button onClick={() => !disabled && onClick()} disabled={disabled}
+    <button
+      onClick={() => !disabled && onClick()}
+      disabled={disabled}
+      aria-label={ariaLabel}
       onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width:36, height:36, borderRadius:8, flexShrink:0,
+        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
         border: disabled ? "1.5px solid #e8e8e8" : hovered ? "1.5px solid #111" : "1.5px solid #d0d0d0",
         background: disabled ? "#fafafa" : hovered ? "#f7f7f7" : "#fff",
         color: disabled ? "#ccc" : "#111",
         cursor: disabled ? "not-allowed" : "pointer",
-        fontSize:20, display:"flex", alignItems:"center", justifyContent:"center",
-        transition:"border 0.12s, background 0.12s",
-      }}>{children}</button>
+        fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "border 0.12s, background 0.12s",
+      }}
+    >{children}</button>
   );
 }
 
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+
 function Calendar({ selected, onSelect }) {
-  const today = new Date();
-  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
-  const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
-  const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 14);
-  const maxIso = isoDate(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate());
+  const todayIso = getToday();
+  const maxIso = getMaxDay();
+  const initDate = new Date(selected + "T12:00:00");
+  const [view, setView] = useState({ y: initDate.getFullYear(), m: initDate.getMonth() });
   const firstDay = new Date(view.y, view.m, 1).getDay();
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let day = 1; day <= daysInMonth; day++) cells.push(day);
   while (cells.length % 7 !== 0) cells.push(null);
+
   return (
     <div>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-        <NavButton onClick={() => setView(v => v.m===0?{y:v.y-1,m:11}:{y:v.y,m:v.m-1})} disabled={false}>‹</NavButton>
-        <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
-        <NavButton onClick={() => setView(v => v.m===11?{y:v.y+1,m:0}:{y:v.y,m:v.m+1})} disabled={false}>›</NavButton>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <NavButton ariaLabel="Mês anterior" onClick={() => setView(v => v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 })} disabled={false}>‹</NavButton>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "#111" }}>{PT_MONTHS[view.m]} {view.y}</span>
+        <NavButton ariaLabel="Próximo mês" onClick={() => setView(v => v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 })} disabled={false}>›</NavButton>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4, marginBottom:6 }}>
-        {PT_DAYS_SHORT.map(dl => <div key={dl} style={{ textAlign:"center", fontSize:11, color:"#999", fontWeight:500 }}>{dl}</div>)}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4, marginBottom: 6 }}>
+        {PT_DAYS_SHORT.map(dl => <div key={dl} style={{ textAlign: "center", fontSize: 11, color: "#999", fontWeight: 500 }}>{dl}</div>)}
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(0, 1fr))", gap:4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4 }}>
         {cells.map((day, i) => {
           if (!day) return <div key={i} />;
           const iso = isoDate(view.y, view.m, day);
@@ -195,24 +239,69 @@ function Calendar({ selected, onSelect }) {
           const isToday = iso === todayIso;
           const disabled = iso < todayIso || iso > maxIso;
           return (
-            <button key={iso} onClick={() => !disabled && onSelect(iso)} style={{
-              aspectRatio:"1/1", width:"100%", borderRadius:8, boxSizing:"border-box",
-              border: isSelected ? "2px solid #111" : "2px solid transparent",
-              background: isSelected ? "#111" : "transparent",
-              color: disabled ? "#ccc" : isSelected ? "#fff" : "#111",
-              fontWeight: isToday ? 700 : 400,
-              fontSize:13, cursor: disabled ? "default" : "pointer",
-              display:"flex", alignItems:"center", justifyContent:"center",
-            }}>{day}</button>
+            <button key={iso} onClick={() => !disabled && onSelect(iso)}
+              aria-label={`${day} de ${PT_MONTHS[view.m]}`}
+              aria-pressed={isSelected}
+              style={{
+                aspectRatio: "1/1", width: "100%", borderRadius: 8, boxSizing: "border-box",
+                border: isSelected ? "2px solid #111" : "2px solid transparent",
+                background: isSelected ? "#111" : "transparent",
+                color: disabled ? "#ccc" : isSelected ? "#fff" : "#111",
+                fontWeight: isToday ? 700 : 400,
+                fontSize: 13, cursor: disabled ? "default" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>{day}</button>
           );
         })}
       </div>
-      <div style={{ fontSize:11, color:"#bbb", marginTop:14, textAlign:"center" }}>
+      <div style={{ fontSize: 11, color: "#bbb", marginTop: 14, textAlign: "center" }}>
         Previsão disponível para os próximos 14 dias
       </div>
     </div>
   );
 }
+
+// ─── CalendarModal ────────────────────────────────────────────────────────────
+
+function CalendarModal({ selected, onApply, onClose }) {
+  const todayIso = getToday();
+  const [tempDay, setTempDay] = useState(selected);
+  return (
+    <div
+      role="dialog" aria-modal="true" aria-label="Filtrar por data"
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <div onClick={e => e.stopPropagation()}
+        style={{ background: "#fff", borderRadius: 16, padding: "24px 20px", width: "100%", maxWidth: 360, margin: "0 16px", boxShadow: "0 8px 32px rgba(0,0,0,0.16)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#111" }}>Filtrar por data</span>
+          <button onClick={onClose} aria-label="Fechar calendário"
+            style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#999", borderRadius: 6 }}>×</button>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <button onClick={() => setTempDay(todayIso)}
+            style={{ padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 600, border: "2px solid #111", background: tempDay === todayIso ? "#111" : "#fff", color: tempDay === todayIso ? "#fff" : "#111" }}>
+            Hoje
+          </button>
+        </div>
+        <Calendar selected={tempDay} onSelect={setTempDay} />
+        <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+          <button onClick={onClose}
+            style={{ flex: 1, padding: "12px", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 600, border: "2px solid #e0e0e0", background: "#fff", color: "#111" }}>
+            Cancelar
+          </button>
+          <button onClick={() => onApply(tempDay)}
+            style={{ flex: 1, padding: "12px", borderRadius: 10, cursor: "pointer", fontSize: 14, fontWeight: 600, border: "2px solid #111", background: "#111", color: "#fff" }}>
+            Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── TideChart ────────────────────────────────────────────────────────────────
 
 function TideChart({ tides, currentHour }) {
   const containerRef = useRef(null);
@@ -221,18 +310,15 @@ function TideChart({ tides, currentHour }) {
   useEffect(() => {
     if (!containerRef.current) return;
     setSvgWidth(containerRef.current.getBoundingClientRect().width);
-    const ro = new ResizeObserver(entries => {
-      setSvgWidth(Math.round(entries[0].contentRect.width));
-    });
+    const ro = new ResizeObserver(entries => setSvgWidth(Math.round(entries[0].contentRect.width)));
     ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
 
   if (!tides || tides.length === 0) return null;
-  if (svgWidth === 0) return <div ref={containerRef} style={{ width:"100%", height:90 }} />;
+  if (svgWidth === 0) return <div ref={containerRef} style={{ width: "100%", height: 90 }} />;
 
   const W = svgWidth, H = 90, PAD_X = 8, PAD_Y = 14;
-
   const tidePts = tides.map(t => {
     const [hr, mn] = t.hour.split(":").map(Number);
     return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
@@ -252,15 +338,13 @@ function TideChart({ tides, currentHour }) {
 
   const xOf = h => PAD_X + (h / 24) * (W - PAD_X * 2);
   const yOf = l => H - PAD_Y - (l / 2.6) * (H - PAD_Y * 2);
-
   const linePath = curve.map((pt, i) => `${i === 0 ? "M" : "L"}${xOf(pt.h).toFixed(1)},${yOf(pt.level).toFixed(1)}`).join(" ");
   const fillPath = `${linePath} L${xOf(24)},${H} L${xOf(0)},${H} Z`;
-  const safeHour = Math.min(Math.max(currentHour, 0), 24);
-  const cx = xOf(safeHour);
+  const cx = xOf(Math.min(Math.max(currentHour, 0), 24));
 
   return (
-    <div ref={containerRef} style={{ width:"100%" }}>
-      <svg width={W} height={H} style={{ display:"block", overflow:"visible" }}>
+    <div ref={containerRef} style={{ width: "100%" }} role="img" aria-label="Gráfico de maré">
+      <svg width={W} height={H} style={{ display: "block", overflow: "visible" }}>
         <path d={fillPath} fill="rgba(0,0,0,0.05)" stroke="none" />
         <path d={linePath} fill="none" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         {tidePts.map((p, i) => {
@@ -269,26 +353,26 @@ function TideChart({ tides, currentHour }) {
             <g key={i}>
               <circle cx={pcx} cy={pcy} r="3" fill="#bbb" />
               <text x={pcx} y={p.high ? pcy - 10 : pcy + 14}
-                textAnchor="middle" fontSize="11" fill="#888"
-                fontFamily="Inter,sans-serif" fontWeight="500">
+                textAnchor="middle" fontSize="11" fill="#888" fontFamily="Inter,sans-serif" fontWeight="500">
                 {fmtTideHr(p.hour)}
               </text>
             </g>
           );
         })}
-        <line x1={cx} y1={0} x2={cx} y2={H} stroke="#bbb" strokeWidth="1.5" />
+        <line x1={cx} y1={0} x2={cx} y2={H} stroke="#111" strokeWidth="1.5" strokeDasharray="3,3" />
       </svg>
     </div>
   );
 }
+
+// ─── Scrubber ─────────────────────────────────────────────────────────────────
 
 function Scrubber({ value, onChange }) {
   const trackRef = useRef(null);
 
   function getHourFromEvent(clientX) {
     const rect = trackRef.current.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    return Math.round(pct * 24);
+    return Math.round(Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * 24);
   }
 
   function handleMouseDown(e) {
@@ -311,86 +395,301 @@ function Scrubber({ value, onChange }) {
   const pct = (value / 24) * 100;
 
   return (
-    <div ref={trackRef}
+    <div
+      ref={trackRef}
+      role="slider"
+      aria-label="Hora do dia"
+      aria-valuemin={0} aria-valuemax={24} aria-valuenow={value} aria-valuetext={fmtHr(value)}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      style={{ position:"relative", height:44, display:"flex", alignItems:"center", cursor:"pointer", marginTop:8, userSelect:"none" }}>
-      <div style={{ position:"absolute", left:0, right:0, height:3, background:"#e0e0e0", borderRadius:99 }} />
-      <div style={{ position:"absolute", left:0, width:`${pct}%`, height:3, background:"#111", borderRadius:99 }} />
-      <div style={{ position:"absolute", left:`${pct}%`, transform:"translateX(-50%)", width:18, height:18, borderRadius:"50%", background:"#111", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }} />
+      style={{ position: "relative", height: 44, display: "flex", alignItems: "center", cursor: "pointer", marginTop: 8, userSelect: "none" }}
+    >
+      <div style={{ position: "absolute", left: 0, right: 0, height: 3, background: "#e0e0e0", borderRadius: 99 }} />
+      <div style={{ position: "absolute", left: 0, width: `${pct}%`, height: 3, background: "#111", borderRadius: 99 }} />
+      <div style={{ position: "absolute", left: `${pct}%`, transform: "translateX(-50%)", width: 18, height: 18, borderRadius: "50%", background: "#111", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
     </div>
   );
 }
 
-function BeachSearch({ onSelect, selectedBeach }) {
-  const [query, setQuery] = useState(selectedBeach || "");
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-  useEffect(() => { setQuery(selectedBeach || ""); }, [selectedBeach]);
+// ─── HomeScreen ───────────────────────────────────────────────────────────────
+
+function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
+  const currentHour = new Date().getHours();
+  const [query, setQuery] = useState("");
+  const [goodBeaches, setGoodBeaches] = useState([]);
+  const [listLoading, setListLoading] = useState(false);
+
   useEffect(() => {
-    const handler = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false); setQuery(selectedBeach || "");
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [selectedBeach]);
-  const filtered = BEACHES.filter(b => {
-    if (!query || query === selectedBeach) return true;
-    return b.toLowerCase().includes(query.toLowerCase());
-  });
-  const handleFocus = () => { setQuery(""); setOpen(true); };
-  const handleChange = (e) => { setQuery(e.target.value); setOpen(true); };
-  const handlePick = (b) => { onSelect(b); setQuery(b); setOpen(false); };
-  const handleClear = () => { onSelect(null); setQuery(""); setOpen(false); };
+    setListLoading(true);
+    setGoodBeaches([]);
+    fetchForecastAll(selectedDay)
+      .then(beaches => {
+        const sorted = [...beaches].sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
+        setGoodBeaches(sorted);
+        setListLoading(false);
+      })
+      .catch(() => setListLoading(false));
+  }, [selectedDay]);
+
+  const filtered = query.trim()
+    ? goodBeaches.filter(b => b.beach.toLowerCase().includes(query.toLowerCase()))
+    : goodBeaches;
+
   return (
-    <div ref={containerRef} style={{ flex:1, position:"relative" }}>
-      <input type="text" placeholder="Buscar praia..." value={query}
-        onChange={handleChange} onFocus={handleFocus}
-        style={{ width:"100%", padding:"13px 40px 13px 16px", borderRadius:10, border:"2px solid #e0e0e0", fontSize:14, color:"#111", outline:"none", boxSizing:"border-box", background:"#fff" }}
-      />
-      {selectedBeach && (
-        <button onMouseDown={handleClear} style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#bbb", fontSize:18, lineHeight:1, padding:2 }}>×</button>
-      )}
-      {open && filtered.length > 0 && (
-        <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, zIndex:20, background:"#fff", border:"1.5px solid #e0e0e0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 16px rgba(0,0,0,0.08)" }}>
-          {filtered.map(b => {
-            const isActive = b === selectedBeach;
-            return (
-              <div key={b} onMouseDown={() => handlePick(b)} style={{ padding:"12px 16px", fontSize:14, color:"#111", cursor:"pointer", borderBottom:"1px solid #f0f0f0", background: isActive ? "#f7f7f7" : "#fff", display:"flex", alignItems:"center", justifyContent:"space-between" }}
-                onMouseEnter={e => e.currentTarget.style.background="#f0f0f0"}
-                onMouseLeave={e => e.currentTarget.style.background = isActive ? "#f7f7f7" : "#fff"}
-              >
-                {b}
-                {isActive && <span style={{ fontSize:14, color:"#111" }}>✓</span>}
-              </div>
-            );
-          })}
+    <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "40px 16px 80px" }}>
+
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <div style={{ fontSize: 11, color: "#999", fontWeight: 500, marginBottom: 8 }}>Swell check</div>
+        <div style={{ fontSize: 26, fontWeight: 700, color: "#111" }}>Previsão para Surf</div>
+      </div>
+
+      {/* Busca + data */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <div style={{ position: "relative", flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Buscar praia..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              aria-label="Buscar praia"
+              style={{ width: "100%", padding: "13px 40px 13px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, color: "#111", outline: "none", boxSizing: "border-box", background: "#fff" }}
+            />
+            {query && (
+              <button onClick={() => setQuery("")} aria-label="Limpar busca"
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#bbb", fontSize: 18, lineHeight: 1, padding: 4 }}>×</button>
+            )}
+          </div>
+          <button onClick={onOpenCalendar} aria-label="Filtrar por data"
+            style={{ flexShrink: 0, padding: "0 16px", borderRadius: 10, border: "1.5px solid #111", background: "#111", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+            Filtrar por data
+          </button>
         </div>
+        <div style={{ fontSize: 13, color: "#999" }}>
+          Exibindo resultados para:{" "}
+          <span style={{ color: "#111", fontWeight: 600 }}>{parseDateLabel(selectedDay)}</span>
+        </div>
+      </div>
+
+      {/* Lista */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {listLoading
+          ? BEACHES.map((_, i) => <HomeCardSkeleton key={i} />)
+          : filtered.length === 0
+            ? <div style={{ fontSize: 14, color: "#bbb", padding: "24px 0" }}>Nenhuma praia encontrada.</div>
+            : filtered.map(b => {
+                const c = CONDITIONS[b.cond];
+                const meta = BEACHES_META[b.beach];
+                const h = b.hours?.[currentHour];
+                return (
+                  <button key={b.beach} onClick={() => onSelectBeach(b.beach)}
+                    aria-label={`Ver previsão de ${b.beach}, condição: ${c.label}`}
+                    style={{ display: "flex", alignItems: "center", gap: 12, border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "18px 20px", cursor: "pointer", background: "#fff", textAlign: "left", width: "100%", transition: "background 0.1s, border-color 0.1s" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "#f7f7f7"; e.currentTarget.style.borderColor = "#ccc"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
+                  >
+                    {/* Nome + localização */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.beach}</div>
+                      <div style={{ fontSize: 12, color: "#999", marginTop: 3 }}>{meta?.state}, {meta?.country}</div>
+                    </div>
+                    {/* Altura */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                      <div style={{ fontSize: 10, color: "#bbb", fontWeight: 500 }}>Altura</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>{h?.height ?? "—"}m</div>
+                    </div>
+                    {/* Chip */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20, flexShrink: 0, background: c.color + "18" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{c.label}</span>
+                    </div>
+                  </button>
+                );
+              })
+        }
+      </div>
+
+      {/* Legenda */}
+      <div style={{ marginTop: 48 }}>
+        <div style={{ height: 1, background: "#f0f0f0", marginBottom: 16 }} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {Object.entries(CONDITIONS).map(([key, c]) => (
+            <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "#999" }}>{c.label} — {COND_DESCS[key]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// ─── BeachPage ────────────────────────────────────────────────────────────────
+
+function BeachPage({ beach, initialDay, onBack }) {
+  const todayIso = getToday();
+  const maxIso = getMaxDay();
+  const currentHour = new Date().getHours();
+  const meta = BEACHES_META[beach];
+
+  const [pageDay, setPageDay] = useState(initialDay);
+  const [beachData, setBeachData] = useState(null);
+  const [tideData, setTideData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [scrubHour, setScrubHour] = useState(currentHour);
+  const [showCal, setShowCal] = useState(false);
+
+  useEffect(() => {
+    setLoading(true); setError(null); setBeachData(null); setTideData(null);
+    Promise.all([fetchForecast(beach, pageDay), fetchTide(pageDay, beach)])
+      .then(([forecast, tide]) => {
+        setBeachData(forecast); setTideData(tide);
+        setScrubHour(currentHour);
+        setLoading(false);
+      })
+      .catch(() => { setError("Não foi possível carregar os dados."); setLoading(false); });
+  }, [beach, pageDay, currentHour]);
+
+  const safeHour = Math.min(scrubHour, 23);
+  const hourData = beachData?.hours?.[safeHour];
+  const dayCond = beachData?.cond;
+  const condColor = dayCond ? CONDITIONS[dayCond]?.color : "#999";
+  const bestStart = beachData?.bestStart;
+  const bestEnd = beachData?.bestEnd;
+
+  return (
+    <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "0 0 80px" }}>
+
+      {/* Header sticky */}
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f0f0f0", padding: "10px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+
+          {/* Botão voltar — 44px mínimo para toque */}
+          <button onClick={onBack} aria-label="Voltar para lista de praias"
+            style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "none", border: "none", cursor: "pointer", borderRadius: 10, color: "#111", fontSize: 24, marginLeft: -8 }}>
+            ‹
+          </button>
+
+          {/* Nome */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: "#999", fontWeight: 500, marginBottom: 1 }}>Swell check</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "#111", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {beach}{meta ? `, ${meta.state}` : ""}
+            </div>
+          </div>
+
+          {/* Navegação de datas */}
+          <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <NavButton ariaLabel="Dia anterior" onClick={() => setPageDay(addDays(pageDay, -1))} disabled={pageDay <= todayIso}>‹</NavButton>
+            <button onClick={() => setShowCal(true)}
+              aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
+              style={{ padding: "6px 10px", borderRadius: 8, border: "1.5px solid #e0e0e0", background: "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#111", whiteSpace: "nowrap" }}>
+              {shortDateLabel(pageDay)}
+            </button>
+            <NavButton ariaLabel="Próximo dia" onClick={() => setPageDay(addDays(pageDay, 1))} disabled={pageDay >= maxIso}>›</NavButton>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Conteúdo */}
+      <div style={{ padding: "20px 16px 0" }}>
+        {loading ? (
+          <BeachDetailSkeleton />
+        ) : error ? (
+          <div role="alert" style={{ fontSize: 14, color: "#d04040", textAlign: "center", padding: "48px 0" }}>{error}</div>
+        ) : beachData && hourData ? (
+          <div style={{ border: "1.5px solid #e0e0e0", borderRadius: 14, padding: "24px 20px" }}>
+
+            {/* Veredito + data + melhor horário */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ width: 12, height: 12, borderRadius: "50%", background: condColor, flexShrink: 0 }} />
+                  <span style={{ fontSize: 32, fontWeight: 700, color: "#111", lineHeight: 1 }}>{CONDITIONS[dayCond]?.label}</span>
+                </div>
+                <div style={{ fontSize: 13, color: "#999" }}>{parseDateLabel(pageDay)}</div>
+              </div>
+              {bestStart != null && bestEnd != null && (
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontSize: 10, color: "#bbb", marginBottom: 3 }}>Melhor horário</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>{fmtHr(bestStart)} – {fmtHr(bestEnd)}</div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
+
+            {/* Condições por hora */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>Condições às {fmtHr(scrubHour)}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: CONDITIONS[hourData.cond]?.color + "18", color: CONDITIONS[hourData.cond]?.color }}>
+                {CONDITIONS[hourData.cond]?.label}
+              </span>
+            </div>
+
+            {/* Grid 2x2 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+              {[
+                { label: "Altura total",     value: `${hourData.height}m` },
+                { label: "Vento",            value: `${hourData.windSpeed} km/h ${hourData.windDir} (${hourData.windType === "offshore" ? "terral" : hourData.windType === "onshore" ? "maral" : "lateral"})` },
+                { label: "Swell",            value: `${hourData.swellHeight}m · ${hourData.swellDir}` },
+                { label: "Período do swell", value: `${hourData.swellPeriod}s` },
+              ].map(item => (
+                <div key={item.label} style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px" }}>
+                  <div style={{ fontSize: 10, color: "#999", marginBottom: 4 }}>{item.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#111" }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Força do swell */}
+            <div style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ fontSize: 10, color: "#999" }}>Força do swell</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>
+                  {hourData.swellKj} Kj{" "}
+                  <span style={{ fontSize: 11, color: "#999", fontWeight: 400 }}>· {SW_LABELS[swellSegs(hourData.swellKj) - 1]}</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 3 }}>
+                {[0,1,2,3,4].map(i => {
+                  const active = swellSegs(hourData.swellKj);
+                  return <div key={i} style={{ flex: 1, height: 6, borderRadius: 4, background: i < active ? SW_COLORS[active - 1] : "#e0e0e0" }} />;
+                })}
+              </div>
+            </div>
+
+            <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
+
+            {/* Maré */}
+            <div style={{ fontSize: 11, color: "#999", marginBottom: 10 }}>Maré</div>
+            <TideChart tides={tideData?.tides} currentHour={scrubHour} />
+            <Scrubber value={scrubHour} onChange={setScrubHour} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", padding: "4px 2px 0" }}>
+              <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
+            </div>
+
+          </div>
+        ) : null}
+      </div>
+
+      {showCal && (
+        <CalendarModal
+          selected={pageDay}
+          onApply={day => { setPageDay(day); setShowCal(false); }}
+          onClose={() => setShowCal(false)}
+        />
       )}
     </div>
   );
 }
 
-async function fetchForecastAll(date) {
-  const res = await fetch(`${API_BASE}/forecast-all?date=${date}`);
-  if (!res.ok) throw new Error("Erro na API");
-  const json = await res.json();
-  return json.beaches;
-}
-
-async function fetchForecast(beach, date) {
-  const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
-  if (!res.ok) throw new Error("Erro na API");
-  return res.json();
-}
-
-async function fetchTide(date, beach) {
-  const res = await fetch(`${API_BASE}/tide?date=${date}&beach=${encodeURIComponent(beach)}`);
-  if (!res.ok) throw new Error("Erro na API");
-  return res.json();
-}
+// ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   useEffect(() => {
@@ -400,226 +699,59 @@ export default function App() {
     document.documentElement.style.background = "#fff";
   }, []);
 
-  const today = new Date();
-  const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
-  const currentHour = today.getHours();
-
-  const [beach, setBeach] = useState(null);
+  const todayIso = getToday();
+  const [screen, setScreen] = useState("home");
+  const [selectedBeach, setSelectedBeach] = useState(null);
   const [selectedDay, setSelectedDay] = useState(todayIso);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [tempDay, setTempDay] = useState(todayIso);
-  const [beachData, setBeachData] = useState(null);
-  const [tideData, setTideData] = useState(null);
-  const [beachLoading, setBeachLoading] = useState(false);
-  const [beachError, setBeachError] = useState(null);
-  const [scrubHour, setScrubHour] = useState(currentHour);
-  const [goodBeaches, setGoodBeaches] = useState([]);
-  const [listLoading, setListLoading] = useState(false);
+  const [showCal, setShowCal] = useState(false);
 
-  const selectBeach = (b) => { setBeach(b); setBeachData(null); setTideData(null); };
-  const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
-  const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
-  const handleCancel = () => setShowCalendar(false);
+  const goToBeach = (beach) => {
+    setSelectedBeach(beach);
+    setScreen("beach");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-  // Carrega dados da praia selecionada
-  useEffect(() => {
-    if (!beach) return;
-    setBeachLoading(true); setBeachError(null); setBeachData(null); setTideData(null);
-    Promise.all([fetchForecast(beach, selectedDay), fetchTide(selectedDay, beach)])
-      .then(([forecast, tide]) => {
-        setBeachData(forecast); setTideData(tide); setBeachLoading(false);
-        setScrubHour(currentHour);
-      })
-      .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
-  }, [beach, selectedDay, currentHour]);
-
-  // Carrega lista de praias via /forecast-all
-  useEffect(() => {
-    if (beach) return;
-    setListLoading(true);
-    setGoodBeaches([]);
-    fetchForecastAll(selectedDay)
-      .then(beaches => {
-        const sorted = [...beaches].sort(
-          (a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99)
-        );
-        setGoodBeaches(sorted);
-        setListLoading(false);
-      })
-      .catch(() => setListLoading(false));
-  }, [beach, selectedDay]);
-
-  const safeHour = Math.min(scrubHour, 23);
-  const hourData = beachData?.hours?.[safeHour];
-  const dayCond = beachData?.cond;
-  const dayCondColor = dayCond ? CONDITIONS[dayCond]?.color : "#999";
-  const bestStart = beachData?.bestStart;
-  const bestEnd = beachData?.bestEnd;
+  const goHome = () => {
+    setScreen("home");
+    setSelectedBeach(null);
+  };
 
   return (
     <>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; }
+        button { font-family: inherit; }
         @keyframes skeletonPulse {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
       `}</style>
-      <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
-        <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
 
-          <div style={{ textAlign:"center", marginBottom:40 }}>
-            <div style={{ fontSize:11, color:"#999", fontWeight:500, marginBottom:8 }}>Swell check</div>
-            <div style={{ fontSize:26, fontWeight:700, color:"#111" }}>Previsão para Surf</div>
-          </div>
+      <main style={{ minHeight: "100vh", background: "#fff" }}>
+        {screen === "home" ? (
+          <HomeScreen
+            onSelectBeach={goToBeach}
+            selectedDay={selectedDay}
+            onOpenCalendar={() => setShowCal(true)}
+          />
+        ) : (
+          <BeachPage
+            beach={selectedBeach}
+            initialDay={selectedDay}
+            onBack={goHome}
+          />
+        )}
+      </main>
 
-          <div style={{ marginBottom:8 }}>
-            <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:10 }}>Praia</div>
-            <div style={{ display:"flex", gap:8 }}>
-              <BeachSearch onSelect={selectBeach} selectedBeach={beach} />
-              <button onClick={openCalendar} style={{ flexShrink:0, padding:"0 16px", borderRadius:10, border:"2px solid #111", background:"#111", color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", whiteSpace:"nowrap" }}>Filtrar por data</button>
-            </div>
-            <div style={{ fontSize:13, color:"#999", marginTop:10 }}>
-              Exibindo resultados para: <span style={{ color:"#111", fontWeight:600 }}>{parseDateLabel(selectedDay)}</span>
-            </div>
-          </div>
-
-          <div style={{ marginTop:24 }}>
-            {beach ? (
-              beachLoading ? (
-                <BeachCardDetailSkeleton />
-              ) : beachError ? (
-                <div style={{ fontSize:14, color:"#d04040", textAlign:"center", padding:"32px 0" }}>{beachError}</div>
-              ) : beachData && hourData ? (
-                <div style={{ border:"1.5px solid #e0e0e0", borderRadius:14, padding:"24px 20px" }}>
-
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                      <span style={{ width:14, height:14, borderRadius:"50%", background:dayCondColor, flexShrink:0, display:"inline-block" }} />
-                      <span style={{ fontSize:32, fontWeight:700, color:"#111", lineHeight:1 }}>{CONDITIONS[dayCond]?.label}</span>
-                    </div>
-                    {bestStart != null && bestEnd != null && (
-                      <div style={{ textAlign:"right" }}>
-                        <div style={{ fontSize:10, color:"#999", marginBottom:2 }}>Melhor horário</div>
-                        <div style={{ fontSize:13, fontWeight:600, color:"#111" }}>{fmtHr(bestStart)} – {fmtHr(bestEnd)}</div>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
-
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-                    <span style={{ fontSize:15, fontWeight:700, color:"#111" }}>Condições às {fmtHr(scrubHour)}</span>
-                    <span style={{ fontSize:11, fontWeight:600, padding:"3px 8px", borderRadius:20, background: CONDITIONS[hourData.cond]?.color + "18", color: CONDITIONS[hourData.cond]?.color }}>
-                      {CONDITIONS[hourData.cond]?.label}
-                    </span>
-                  </div>
-
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:8 }}>
-                    {[
-                      { label:"Altura total",     value:`${hourData.height}m` },
-                      { label:"Vento",            value:`${hourData.windSpeed} km/h ${hourData.windDir} (${hourData.windType === "offshore" ? "terral" : hourData.windType === "onshore" ? "maral" : "lateral"})` },
-                      { label:"Swell",            value:`${hourData.swellHeight}m · ${hourData.swellDir}` },
-                      { label:"Período do swell", value:`${hourData.swellPeriod}s` },
-                    ].map(item => (
-                      <div key={item.label} style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px" }}>
-                        <div style={{ fontSize:10, color:"#999", marginBottom:4 }}>{item.label}</div>
-                        <div style={{ fontSize:14, fontWeight:600, color:"#111" }}>{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ background:"#f7f7f7", borderRadius:10, padding:"11px 12px" }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                      <div style={{ fontSize:10, color:"#999" }}>Força do swell</div>
-                      <div style={{ fontSize:13, fontWeight:600, color:"#111" }}>
-                        {hourData.swellKj} Kj <span style={{ fontSize:11, color:"#999", fontWeight:400 }}>· {SW_LABELS[swellSegs(hourData.swellKj) - 1]}</span>
-                      </div>
-                    </div>
-                    <div style={{ display:"flex", gap:3 }}>
-                      {[0,1,2,3,4].map(i => {
-                        const active = swellSegs(hourData.swellKj);
-                        return <div key={i} style={{ flex:1, height:6, borderRadius:4, background: i < active ? SW_COLORS[active-1] : "#e0e0e0" }} />;
-                      })}
-                    </div>
-                  </div>
-
-                  <div style={{ height:1, background:"#f0f0f0", margin:"20px 0" }} />
-
-                  <div style={{ fontSize:11, color:"#999", marginBottom:10 }}>Maré</div>
-                  <TideChart tides={tideData?.tides} currentHour={scrubHour} />
-                  <Scrubber value={scrubHour} onChange={setScrubHour} />
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#ccc", padding:"4px 2px 0" }}>
-                    <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
-                  </div>
-
-                </div>
-              ) : null
-            ) : (
-              <div>
-                {/* Skeleton ou lista real */}
-                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                  {listLoading
-                    ? BEACHES.map((_, i) => <BeachCardSkeleton key={i} />)
-                    : goodBeaches.length === 0
-                      ? <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia disponível para o dia selecionado.</div>
-                      : goodBeaches.map(beach2 => {
-                          const c = CONDITIONS[beach2.cond];
-                          return (
-                            <div key={beach2.beach} onClick={() => selectBeach(beach2.beach)}
-                              style={{ border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px", cursor:"pointer", display:"grid", alignItems:"center", gridTemplateColumns:"72px 1fr auto auto", gap:12, background:"#fff" }}
-                              onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
-                              onMouseLeave={e => e.currentTarget.style.background="#fff"}
-                            >
-                              <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600, color:c.color, background: c.color + "18", borderRadius:20, padding:"4px 10px" }}>
-                                <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-                                {c.label}
-                              </span>
-                              <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{beach2.beach}</span>
-                              <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.height ?? "—"}m</span>
-                              <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.windSpeed ?? "—"} km/h {beach2.hours?.[currentHour]?.windDir ?? ""}</span>
-                            </div>
-                          );
-                        })
-                  }
-                </div>
-              </div>
-            )}
-          </div>
-
-          {showCalendar && (
-            <div onClick={handleCancel} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div onClick={e => e.stopPropagation()} style={{ background:"#fff", borderRadius:16, padding:"24px 20px", width:"100%", maxWidth:360, margin:"0 16px", boxShadow:"0 8px 32px rgba(0,0,0,0.16)" }}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-                  <span style={{ fontSize:14, fontWeight:600, color:"#111" }}>Filtrar por data</span>
-                  <button onClick={handleCancel} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#999", lineHeight:1 }}>×</button>
-                </div>
-                <div style={{ marginBottom:16 }}>
-                  <button onClick={() => setTempDay(todayIso)} style={{ padding:"8px 16px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:600, border:"2px solid #111", background: tempDay === todayIso ? "#111" : "#fff", color: tempDay === todayIso ? "#fff" : "#111" }}>Hoje</button>
-                </div>
-                <Calendar selected={tempDay} onSelect={setTempDay} />
-                <div style={{ display:"flex", gap:8, marginTop:20 }}>
-                  <button onClick={handleCancel} style={{ flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600, border:"2px solid #e0e0e0", background:"#fff", color:"#111" }}>Cancelar</button>
-                  <button onClick={handleApply} style={{ flex:1, padding:"12px", borderRadius:10, cursor:"pointer", fontSize:14, fontWeight:600, border:"2px solid #111", background:"#111", color:"#fff" }}>Aplicar</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{ marginTop:"auto", paddingTop:48 }}>
-            <div style={{ height:1, background:"#f0f0f0", marginBottom:16 }} />
-            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              {Object.entries(CONDITIONS).map(([key, c]) => (
-                <div key={key} style={{ display:"flex", alignItems:"center", gap:6 }}>
-                  <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-                  <span style={{ fontSize:12, color:"#999" }}>{c.label} — {COND_DESCS[key]}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </div>
+      {showCal && screen === "home" && (
+        <CalendarModal
+          selected={selectedDay}
+          onApply={day => { setSelectedDay(day); setShowCal(false); }}
+          onClose={() => setShowCal(false)}
+        />
+      )}
     </>
   );
 }
