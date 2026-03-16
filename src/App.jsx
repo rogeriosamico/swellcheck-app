@@ -1,19 +1,26 @@
 import { useState, useEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-const BEACHES = ["Paiva", "Itapuama", "Porto de Galinhas", "Maracaípe", "Madeiro", "Baía Formosa", "Cacimba do Padre", "Jericoacoara", "Tourinhos"];
+// ─── Dados ────────────────────────────────────────────────────────────────────
 
 const BEACHES_META = {
-  "Paiva":             { state: "PE", country: "Brasil" },
-  "Itapuama":          { state: "PE", country: "Brasil" },
-  "Porto de Galinhas": { state: "PE", country: "Brasil" },
-  "Maracaípe":         { state: "PE", country: "Brasil" },
-  "Madeiro":           { state: "RN", country: "Brasil" },
-  "Baía Formosa":      { state: "RN", country: "Brasil" },
-  "Cacimba do Padre":  { state: "PE", country: "Brasil" },
-  "Jericoacoara":      { state: "CE", country: "Brasil" },
-  "Tourinhos":         { state: "RN", country: "Brasil" },
+  "Paiva":             { state: "PE", country: "Brasil", slug: "paiva" },
+  "Itapuama":          { state: "PE", country: "Brasil", slug: "itapuama" },
+  "Porto de Galinhas": { state: "PE", country: "Brasil", slug: "porto-de-galinhas" },
+  "Maracaípe":         { state: "PE", country: "Brasil", slug: "maracaipe" },
+  "Madeiro":           { state: "RN", country: "Brasil", slug: "madeiro" },
+  "Baía Formosa":      { state: "RN", country: "Brasil", slug: "baia-formosa" },
+  "Cacimba do Padre":  { state: "PE", country: "Brasil", slug: "cacimba-do-padre" },
+  "Jericoacoara":      { state: "CE", country: "Brasil", slug: "jericoacoara" },
+  "Tourinhos":         { state: "RN", country: "Brasil", slug: "tourinhos" },
 };
 
+// Lookup reverso: slug → nome da praia
+const SLUG_TO_BEACH = Object.fromEntries(
+  Object.entries(BEACHES_META).map(([name, meta]) => [meta.slug, name])
+);
+
+const BEACHES = Object.keys(BEACHES_META);
 const API_BASE = "https://swellcheck.vercel.app";
 
 const CONDITIONS = {
@@ -53,6 +60,11 @@ function addDays(iso, n) {
   const d = new Date(iso + "T12:00:00");
   d.setDate(d.getDate() + n);
   return isoDate(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function isValidDate(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  return iso >= getToday() && iso <= getMaxDay();
 }
 
 function parseDateLabel(iso) {
@@ -431,11 +443,16 @@ function Scrubber({ value, onChange }) {
 
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
-function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
+function HomeScreen() {
+  const navigate = useNavigate();
   const currentHour = new Date().getHours();
+  const todayIso = getToday();
+
   const [query, setQuery] = useState("");
+  const [selectedDay, setSelectedDay] = useState(todayIso);
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
+  const [showCal, setShowCal] = useState(false);
 
   useEffect(() => {
     setListLoading(true);
@@ -453,16 +470,21 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
     ? goodBeaches.filter(b => b.beach.toLowerCase().includes(query.toLowerCase()))
     : goodBeaches;
 
+  const goToBeach = (beachName) => {
+    const slug = BEACHES_META[beachName]?.slug;
+    if (!slug) return;
+    const params = selectedDay !== todayIso ? `?data=${selectedDay}` : "";
+    navigate(`/praia/${slug}${params}`);
+  };
+
   return (
     <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "40px 16px 80px" }}>
 
-      {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <div style={{ fontSize: 11, color: "#999", fontWeight: 500, marginBottom: 8 }}>Swell check</div>
         <div style={{ fontSize: 26, fontWeight: 700, color: "#111" }}>Previsão para Surf</div>
       </div>
 
-      {/* Busca + data */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
           <div style={{ position: "relative", flex: 1 }}>
@@ -479,7 +501,7 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
                 style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#bbb", fontSize: 18, lineHeight: 1, padding: 4 }}>×</button>
             )}
           </div>
-          <button onClick={onOpenCalendar} aria-label="Filtrar por data"
+          <button onClick={() => setShowCal(true)} aria-label="Filtrar por data"
             style={{ flexShrink: 0, padding: "0 16px", borderRadius: 10, border: "1.5px solid #111", background: "#111", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
             Filtrar por data
           </button>
@@ -490,7 +512,6 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
         </div>
       </div>
 
-      {/* Lista */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {listLoading
           ? BEACHES.map((_, i) => <HomeCardSkeleton key={i} />)
@@ -501,23 +522,20 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
                 const meta = BEACHES_META[b.beach];
                 const h = b.hours?.[currentHour];
                 return (
-                  <button key={b.beach} onClick={() => onSelectBeach(b.beach)}
+                  <button key={b.beach} onClick={() => goToBeach(b.beach)}
                     aria-label={`Ver previsão de ${b.beach}, condição: ${c.label}`}
                     style={{ display: "flex", alignItems: "center", gap: 12, border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "18px 20px", cursor: "pointer", background: "#fff", textAlign: "left", width: "100%", transition: "background 0.1s, border-color 0.1s" }}
                     onMouseEnter={e => { e.currentTarget.style.background = "#f7f7f7"; e.currentTarget.style.borderColor = "#ccc"; }}
                     onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
                   >
-                    {/* Nome + localização */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.beach}</div>
                       <div style={{ fontSize: 12, color: "#999", marginTop: 3 }}>{meta?.state}, {meta?.country}</div>
                     </div>
-                    {/* Altura */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
                       <div style={{ fontSize: 10, color: "#bbb", fontWeight: 500 }}>Altura</div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>{h?.height ?? "—"}m</div>
                     </div>
-                    {/* Chip */}
                     <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20, flexShrink: 0, background: c.color + "18" }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
                       <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{c.label}</span>
@@ -528,7 +546,6 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
         }
       </div>
 
-      {/* Legenda */}
       <div style={{ marginTop: 48 }}>
         <div style={{ height: 1, background: "#f0f0f0", marginBottom: 16 }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -541,19 +558,43 @@ function HomeScreen({ onSelectBeach, selectedDay, onOpenCalendar }) {
         </div>
       </div>
 
+      {showCal && (
+        <CalendarModal
+          selected={selectedDay}
+          onApply={day => { setSelectedDay(day); setShowCal(false); }}
+          onClose={() => setShowCal(false)}
+        />
+      )}
     </div>
   );
 }
 
 // ─── BeachPage ────────────────────────────────────────────────────────────────
 
-function BeachPage({ beach, initialDay, onBack }) {
+function BeachPage() {
+  const { slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const beach = SLUG_TO_BEACH[slug];
   const todayIso = getToday();
   const maxIso = getMaxDay();
   const currentHour = new Date().getHours();
   const meta = BEACHES_META[beach];
 
-  const [pageDay, setPageDay] = useState(initialDay);
+  // Data vem da URL (?data=), com fallback para hoje
+  const rawDate = searchParams.get("data");
+  const pageDay = isValidDate(rawDate) ? rawDate : todayIso;
+
+  const setPageDay = (day) => {
+    if (day === todayIso) {
+      setSearchParams({});
+    } else {
+      setSearchParams({ data: day });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const [beachData, setBeachData] = useState(null);
   const [tideData, setTideData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -561,7 +602,13 @@ function BeachPage({ beach, initialDay, onBack }) {
   const [scrubHour, setScrubHour] = useState(currentHour);
   const [showCal, setShowCal] = useState(false);
 
+  // Slug inválido → redireciona para home
   useEffect(() => {
+    if (!beach) navigate("/", { replace: true });
+  }, [beach, navigate]);
+
+  useEffect(() => {
+    if (!beach) return;
     setLoading(true); setError(null); setBeachData(null); setTideData(null);
     Promise.all([fetchForecast(beach, pageDay), fetchTide(pageDay, beach)])
       .then(([forecast, tide]) => {
@@ -571,6 +618,8 @@ function BeachPage({ beach, initialDay, onBack }) {
       })
       .catch(() => { setError("Não foi possível carregar os dados."); setLoading(false); });
   }, [beach, pageDay, currentHour]);
+
+  if (!beach) return null;
 
   const safeHour = Math.min(scrubHour, 23);
   const hourData = beachData?.hours?.[safeHour];
@@ -587,7 +636,7 @@ function BeachPage({ beach, initialDay, onBack }) {
 
         {/* Linha 1: voltar + logo */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
-          <BackButton onClick={onBack} />
+          <BackButton onClick={() => navigate("/")} />
           <div style={{ fontSize: 11, color: "#999", fontWeight: 500 }}>Swell check</div>
           <div style={{ width: 60 }} />
         </div>
@@ -624,7 +673,6 @@ function BeachPage({ beach, initialDay, onBack }) {
         ) : beachData && hourData ? (
           <div style={{ border: "1.5px solid #e0e0e0", borderRadius: 14, padding: "24px 20px" }}>
 
-            {/* Veredito + data + melhor horário */}
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -643,7 +691,6 @@ function BeachPage({ beach, initialDay, onBack }) {
 
             <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
 
-            {/* Condições por hora */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <span style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>Condições às {fmtHr(scrubHour)}</span>
               <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: CONDITIONS[hourData.cond]?.color + "18", color: CONDITIONS[hourData.cond]?.color }}>
@@ -651,7 +698,6 @@ function BeachPage({ beach, initialDay, onBack }) {
               </span>
             </div>
 
-            {/* Grid 2x2 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
               {[
                 { label: "Altura total",     value: `${hourData.height}m` },
@@ -666,7 +712,6 @@ function BeachPage({ beach, initialDay, onBack }) {
               ))}
             </div>
 
-            {/* Força do swell */}
             <div style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <div style={{ fontSize: 10, color: "#999" }}>Força do swell</div>
@@ -685,7 +730,6 @@ function BeachPage({ beach, initialDay, onBack }) {
 
             <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
 
-            {/* Maré */}
             <div style={{ fontSize: 11, color: "#999", marginBottom: 10 }}>Maré</div>
             <TideChart tides={tideData?.tides} currentHour={scrubHour} />
             <Scrubber value={scrubHour} onChange={setScrubHour} />
@@ -718,23 +762,6 @@ export default function App() {
     document.documentElement.style.background = "#fff";
   }, []);
 
-  const todayIso = getToday();
-  const [screen, setScreen] = useState("home");
-  const [selectedBeach, setSelectedBeach] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(todayIso);
-  const [showCal, setShowCal] = useState(false);
-
-  const goToBeach = (beach) => {
-    setSelectedBeach(beach);
-    setScreen("beach");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const goHome = () => {
-    setScreen("home");
-    setSelectedBeach(null);
-  };
-
   return (
     <>
       <style>{`
@@ -747,30 +774,15 @@ export default function App() {
           100% { background-position: -200% 0; }
         }
       `}</style>
-
-      <main style={{ minHeight: "100vh", background: "#fff" }}>
-        {screen === "home" ? (
-          <HomeScreen
-            onSelectBeach={goToBeach}
-            selectedDay={selectedDay}
-            onOpenCalendar={() => setShowCal(true)}
-          />
-        ) : (
-          <BeachPage
-            beach={selectedBeach}
-            initialDay={selectedDay}
-            onBack={goHome}
-          />
-        )}
-      </main>
-
-      {showCal && screen === "home" && (
-        <CalendarModal
-          selected={selectedDay}
-          onApply={day => { setSelectedDay(day); setShowCal(false); }}
-          onClose={() => setShowCal(false)}
-        />
-      )}
+      <BrowserRouter>
+        <main style={{ minHeight: "100vh", background: "#fff" }}>
+          <Routes>
+            <Route path="/" element={<HomeScreen />} />
+            <Route path="/praia/:slug" element={<BeachPage />} />
+            <Route path="*" element={<HomeScreen />} />
+          </Routes>
+        </main>
+      </BrowserRouter>
     </>
   );
 }
