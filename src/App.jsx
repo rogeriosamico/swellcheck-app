@@ -11,6 +11,7 @@ const CONDITIONS = {
 };
 
 const COND_DESCS = { flat:"Não vale a pena", marola:"Vai depender", bom:"Vai surfar!", storm:"Cuidado" };
+const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
 
 const PT_DAYS_FULL  = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const PT_MONTHS     = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -50,6 +51,38 @@ function swellSegs(kj) {
   if (kj < 2000) return 3;
   if (kj < 3000) return 4;
   return 5;
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+function SkeletonPulse({ width = "100%", height = 14, borderRadius = 6, style = {} }) {
+  return (
+    <div style={{
+      width, height, borderRadius,
+      background: "linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%)",
+      backgroundSize: "200% 100%",
+      animation: "skeletonPulse 1.4s ease-in-out infinite",
+      flexShrink: 0,
+      ...style,
+    }} />
+  );
+}
+
+function BeachCardSkeleton() {
+  return (
+    <div style={{
+      border: "1.5px solid #e0e0e0", borderRadius: 12,
+      padding: "14px 16px",
+      display: "grid",
+      alignItems: "center",
+      gridTemplateColumns: "72px 1fr auto auto",
+      gap: 12,
+    }}>
+      <SkeletonPulse width={72} height={24} borderRadius={20} />
+      <SkeletonPulse width="60%" height={16} />
+      <SkeletonPulse width={32} height={14} />
+      <SkeletonPulse width={56} height={14} />
+    </div>
+  );
 }
 
 function NavButton({ onClick, disabled, children }) {
@@ -278,6 +311,13 @@ function BeachSearch({ onSelect, selectedBeach }) {
   );
 }
 
+async function fetchForecastAll(date) {
+  const res = await fetch(`${API_BASE}/forecast-all?date=${date}`);
+  if (!res.ok) throw new Error("Erro na API");
+  const json = await res.json();
+  return json.beaches;
+}
+
 async function fetchForecast(beach, date) {
   const res = await fetch(`${API_BASE}/forecast?beach=${encodeURIComponent(beach)}&date=${date}`);
   if (!res.ok) throw new Error("Erro na API");
@@ -314,13 +354,12 @@ export default function App() {
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
 
-  const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
-
-  const selectBeach = (b) => { setBeach(b); setBeachData(null); setTideData(null); if (!b) setGoodBeaches([]); };
+  const selectBeach = (b) => { setBeach(b); setBeachData(null); setTideData(null); };
   const openCalendar = () => { setTempDay(selectedDay); setShowCalendar(true); };
   const handleApply = () => { setSelectedDay(tempDay); setShowCalendar(false); };
   const handleCancel = () => setShowCalendar(false);
 
+  // Carrega dados da praia selecionada
   useEffect(() => {
     if (!beach) return;
     setBeachLoading(true); setBeachError(null); setBeachData(null); setTideData(null);
@@ -332,17 +371,20 @@ export default function App() {
       .catch(() => { setBeachError("Não foi possível carregar os dados."); setBeachLoading(false); });
   }, [beach, selectedDay]);
 
+  // Carrega lista de praias via /forecast-all
   useEffect(() => {
     if (beach) return;
     setListLoading(true);
-    Promise.all(BEACHES.map(b => fetchForecast(b, selectedDay).catch(() => null)))
-      .then(results => {
-        const all = results
-          .map((d, i) => d ? { ...d, beach: BEACHES[i] } : null)
-          .filter(Boolean)
-          .sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
-        setGoodBeaches(all); setListLoading(false);
-      });
+    setGoodBeaches([]);
+    fetchForecastAll(selectedDay)
+      .then(beaches => {
+        const sorted = [...beaches].sort(
+          (a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99)
+        );
+        setGoodBeaches(sorted);
+        setListLoading(false);
+      })
+      .catch(() => setListLoading(false));
   }, [beach, selectedDay]);
 
   const safeHour = Math.min(scrubHour, 23);
@@ -357,6 +399,10 @@ export default function App() {
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { background: #fff; min-height: 100vh; overflow-x: hidden; }
+        @keyframes skeletonPulse {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
       `}</style>
       <div style={{ minHeight:"100vh", background:"#fff", fontFamily:"'Inter', sans-serif", padding:"40px 16px 80px" }}>
         <div style={{ width:"100%", maxWidth:680, margin:"0 auto", display:"flex", flexDirection:"column" }}>
@@ -452,31 +498,33 @@ export default function App() {
                 <div style={{ fontSize:13, color:"#999", fontWeight:500, marginBottom:12 }}>
                   Condições para {parseDateLabel(selectedDay).toLowerCase()}
                 </div>
-                {listLoading ? (
-                  <div style={{ fontSize:14, color:"#bbb", textAlign:"center", padding:"32px 0" }}>Carregando...</div>
-                ) : goodBeaches.length === 0 ? (
-                  <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia disponível para o dia selecionado.</div>
-                ) : (
-                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {goodBeaches.map(beach2 => {
-                      const c = CONDITIONS[beach2.cond];
-                      return (
-                        <div key={beach2.beach} onClick={() => selectBeach(beach2.beach)} style={{ border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px", cursor:"pointer", display:"grid", alignItems:"center", gridTemplateColumns:"72px 1fr auto auto", gap:12, background:"#fff" }}
-                          onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
-                          onMouseLeave={e => e.currentTarget.style.background="#fff"}
-                        >
-                          <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600, color:c.color, background: c.color + "18", borderRadius:20, padding:"4px 10px" }}>
-                            <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
-                            {c.label}
-                          </span>
-                          <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{beach2.beach}</span>
-                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.height ?? "—"}m</span>
-                          <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.windSpeed ?? "—"} km/h {beach2.hours?.[currentHour]?.windDir ?? ""}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+
+                {/* Skeleton ou lista real */}
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {listLoading
+                    ? BEACHES.map((_, i) => <BeachCardSkeleton key={i} />)
+                    : goodBeaches.length === 0
+                      ? <div style={{ fontSize:14, color:"#bbb" }}>Nenhuma praia disponível para o dia selecionado.</div>
+                      : goodBeaches.map(beach2 => {
+                          const c = CONDITIONS[beach2.cond];
+                          return (
+                            <div key={beach2.beach} onClick={() => selectBeach(beach2.beach)}
+                              style={{ border:"1.5px solid #e0e0e0", borderRadius:12, padding:"14px 16px", cursor:"pointer", display:"grid", alignItems:"center", gridTemplateColumns:"72px 1fr auto auto", gap:12, background:"#fff" }}
+                              onMouseEnter={e => e.currentTarget.style.background="#f7f7f7"}
+                              onMouseLeave={e => e.currentTarget.style.background="#fff"}
+                            >
+                              <span style={{ display:"flex", alignItems:"center", gap:6, fontSize:12, fontWeight:600, color:c.color, background: c.color + "18", borderRadius:20, padding:"4px 10px" }}>
+                                <span style={{ width:7, height:7, borderRadius:"50%", background:c.color, flexShrink:0 }} />
+                                {c.label}
+                              </span>
+                              <span style={{ fontSize:15, fontWeight:600, color:"#111" }}>{beach2.beach}</span>
+                              <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.height ?? "—"}m</span>
+                              <span style={{ fontSize:13, color:"#bbb", textAlign:"right" }}>{beach2.hours?.[currentHour]?.windSpeed ?? "—"} km/h {beach2.hours?.[currentHour]?.windDir ?? ""}</span>
+                            </div>
+                          );
+                        })
+                  }
+                </div>
               </div>
             )}
           </div>
