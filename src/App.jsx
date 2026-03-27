@@ -15,7 +15,6 @@ const BEACHES_META = {
   "Tourinhos":         { state: "RN", country: "Brasil", slug: "tourinhos" },
 };
 
-// Lookup reverso: slug → nome da praia
 const SLUG_TO_BEACH = Object.fromEntries(
   Object.entries(BEACHES_META).map(([name, meta]) => [meta.slug, name])
 );
@@ -117,7 +116,7 @@ async function fetchForecast(beach, date) {
 
 async function fetchTide(date, beach) {
   const res = await fetch(`${API_BASE}/tide?date=${date}&beach=${encodeURIComponent(beach)}`);
-  if (!res.ok) throw new Error("Erro na API");
+  if (!res.ok) throw new Error("Erro na API de maré");
   return res.json();
 }
 
@@ -582,7 +581,6 @@ function BeachPage() {
   const currentHour = new Date().getHours();
   const meta = BEACHES_META[beach];
 
-  // Data vem da URL (?data=), com fallback para hoje
   const rawDate = searchParams.get("data");
   const pageDay = isValidDate(rawDate) ? rawDate : todayIso;
 
@@ -597,26 +595,40 @@ function BeachPage() {
 
   const [beachData, setBeachData] = useState(null);
   const [tideData, setTideData] = useState(null);
+  const [tideError, setTideError] = useState(false);   // ← novo: erro isolado de maré
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrubHour, setScrubHour] = useState(currentHour);
   const [showCal, setShowCal] = useState(false);
 
-  // Slug inválido → redireciona para home
   useEffect(() => {
     if (!beach) navigate("/", { replace: true });
   }, [beach, navigate]);
 
   useEffect(() => {
     if (!beach) return;
-    setLoading(true); setError(null); setBeachData(null); setTideData(null);
-    Promise.all([fetchForecast(beach, pageDay), fetchTide(pageDay, beach)])
-      .then(([forecast, tide]) => {
-        setBeachData(forecast); setTideData(tide);
+    setLoading(true);
+    setError(null);
+    setBeachData(null);
+    setTideData(null);
+    setTideError(false);
+
+    // Forecast e tide em paralelo, mas independentes
+    fetchForecast(beach, pageDay)
+      .then(forecast => {
+        setBeachData(forecast);
         setScrubHour(currentHour);
         setLoading(false);
       })
-      .catch(() => { setError("Não foi possível carregar os dados."); setLoading(false); });
+      .catch(() => {
+        setError("Não foi possível carregar os dados.");
+        setLoading(false);
+      });
+
+    fetchTide(pageDay, beach)
+      .then(tide => setTideData(tide))
+      .catch(() => setTideError(true));   // ← maré falhou, mas não afeta o resto
+
   }, [beach, pageDay, currentHour]);
 
   if (!beach) return null;
@@ -634,14 +646,12 @@ function BeachPage() {
       {/* Header sticky — 2 linhas */}
       <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f0f0f0" }}>
 
-        {/* Linha 1: voltar + logo */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px 8px", borderBottom: "1px solid #f0f0f0" }}>
           <BackButton onClick={() => navigate("/")} />
           <div style={{ fontSize: 11, color: "#999", fontWeight: 500 }}>Swell check</div>
           <div style={{ width: 60 }} />
         </div>
 
-        {/* Linha 2: nome da praia + navegação de datas */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px 12px" }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {beach}{meta ? `, ${meta.state}` : ""}
@@ -728,14 +738,35 @@ function BeachPage() {
               </div>
             </div>
 
+            {/* ─── Seção de maré — renderiza apenas se tiver dados ─── */}
             <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
 
             <div style={{ fontSize: 11, color: "#999", marginBottom: 10 }}>Maré</div>
-            <TideChart tides={tideData?.tides} currentHour={scrubHour} />
-            <Scrubber value={scrubHour} onChange={setScrubHour} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", padding: "4px 2px 0" }}>
-              <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
-            </div>
+
+            {tideError ? (
+              /* Mensagem discreta quando a API de maré está fora */
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "12px 14px", borderRadius: 10,
+                background: "#f7f7f7", marginBottom: 4,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
+                  <circle cx="8" cy="8" r="7" stroke="#111" strokeWidth="1.5" />
+                  <path d="M8 5v3.5" stroke="#111" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="8" cy="11.5" r="0.75" fill="#111" />
+                </svg>
+                <span style={{ fontSize: 12, color: "#999" }}>Dados de maré temporariamente indisponíveis.</span>
+              </div>
+            ) : tideData ? (
+              /* Gráfico + scrubber normais */
+              <>
+                <TideChart tides={tideData?.tides} currentHour={scrubHour} />
+                <Scrubber value={scrubHour} onChange={setScrubHour} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ccc", padding: "4px 2px 0" }}>
+                  <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span>
+                </div>
+              </>
+            ) : null /* ainda carregando maré — não mostra nada */ }
 
           </div>
         ) : null}
