@@ -4,15 +4,15 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams, useSearchParams }
 // ─── Dados ────────────────────────────────────────────────────────────────────
 
 const BEACHES_META = {
-  "Paiva":             { state: "PE", country: "Brasil", slug: "paiva" },
-  "Itapuama":          { state: "PE", country: "Brasil", slug: "itapuama" },
+  "Paiva": { state: "PE", country: "Brasil", slug: "paiva" },
+  "Itapuama": { state: "PE", country: "Brasil", slug: "itapuama" },
   "Porto de Galinhas": { state: "PE", country: "Brasil", slug: "porto-de-galinhas" },
-  "Maracaípe":         { state: "PE", country: "Brasil", slug: "maracaipe" },
-  "Madeiro":           { state: "RN", country: "Brasil", slug: "madeiro" },
-  "Baía Formosa":      { state: "RN", country: "Brasil", slug: "baia-formosa" },
-  "Cacimba do Padre":  { state: "PE", country: "Brasil", slug: "cacimba-do-padre" },
-  "Jericoacoara":      { state: "CE", country: "Brasil", slug: "jericoacoara" },
-  "Tourinhos":         { state: "RN", country: "Brasil", slug: "tourinhos" },
+  "Maracaípe": { state: "PE", country: "Brasil", slug: "maracaipe" },
+  "Madeiro": { state: "RN", country: "Brasil", slug: "madeiro" },
+  "Baía Formosa": { state: "RN", country: "Brasil", slug: "baia-formosa" },
+  "Cacimba do Padre": { state: "PE", country: "Brasil", slug: "cacimba-do-padre" },
+  "Jericoacoara": { state: "CE", country: "Brasil", slug: "jericoacoara" },
+  "Tourinhos": { state: "RN", country: "Brasil", slug: "tourinhos" },
 };
 
 const SLUG_TO_BEACH = Object.fromEntries(
@@ -20,23 +20,23 @@ const SLUG_TO_BEACH = Object.fromEntries(
 );
 
 const BEACHES = Object.keys(BEACHES_META);
-const API_BASE = "https://swellcheck.vercel.app";
+const API_BASE = "http://localhost:3000";
 
 const CONDITIONS = {
-  flat:   { label: "Flat",   color: "#a07850" },
+  flat: { label: "Flat", color: "#a07850" },
   marola: { label: "Marola", color: "#c8a800" },
-  bom:    { label: "Bom",    color: "#2e9e6a" },
-  storm:  { label: "Storm",  color: "#d04040" },
+  bom: { label: "Bom", color: "#2e9e6a" },
+  storm: { label: "Storm", color: "#d04040" },
 };
 
 const COND_DESCS = { flat: "Não vale a pena", marola: "Vai depender", bom: "Vai surfar!", storm: "Cuidado" };
 const COND_ORDER = { storm: 0, bom: 1, marola: 2, flat: 3 };
 
-const PT_DAYS_FULL  = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-const PT_DAYS_SHORT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-const PT_MONTHS     = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const SW_COLORS     = ["#a07850","#c8a800","#2e9e6a","#e07820","#d04040"];
-const SW_LABELS     = ["Fraco","Médio","Bom","Forte","Muito forte"];
+const PT_DAYS_FULL = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+const PT_DAYS_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const PT_MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const SW_COLORS = ["#a07850", "#c8a800", "#2e9e6a", "#e07820", "#d04040"];
+const SW_LABELS = ["Fraco", "Médio", "Bom", "Forte", "Muito forte"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -93,7 +93,7 @@ function fmtTideHr(h) {
 }
 
 function swellSegs(kj) {
-  if (kj < 500)  return 1;
+  if (kj < 500) return 1;
   if (kj < 1000) return 2;
   if (kj < 2000) return 3;
   if (kj < 3000) return 4;
@@ -167,7 +167,7 @@ function BeachDetailSkeleton() {
         <SkeletonPulse width={56} height={22} borderRadius={20} />
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-        {[0,1,2,3].map(i => (
+        {[0, 1, 2, 3].map(i => (
           <div key={i} style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
             <SkeletonPulse width="50%" height={10} />
             <SkeletonPulse width="75%" height={14} />
@@ -180,7 +180,7 @@ function BeachDetailSkeleton() {
           <SkeletonPulse width={60} height={12} />
         </div>
         <div style={{ display: "flex", gap: 3 }}>
-          {[0,1,2,3,4].map(i => <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex: 1 }} />)}
+          {[0, 1, 2, 3, 4].map(i => <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex: 1 }} />)}
         </div>
       </div>
       <div style={{ height: 1, background: "#f0f0f0", margin: "20px 0" }} />
@@ -188,7 +188,7 @@ function BeachDetailSkeleton() {
       <SkeletonPulse width="100%" height={90} borderRadius={8} style={{ marginBottom: 8 }} />
       <SkeletonPulse width="100%" height={44} borderRadius={8} />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-        {[0,1,2,3,4].map(i => <SkeletonPulse key={i} width={28} height={10} />)}
+        {[0, 1, 2, 3, 4].map(i => <SkeletonPulse key={i} width={28} height={10} />)}
       </div>
     </div>
   );
@@ -517,31 +517,31 @@ function HomeScreen() {
           : filtered.length === 0
             ? <div style={{ fontSize: 14, color: "#bbb", padding: "24px 0" }}>Nenhuma praia encontrada.</div>
             : filtered.map(b => {
-                const c = CONDITIONS[b.cond];
-                const meta = BEACHES_META[b.beach];
-                const h = b.hours?.[currentHour];
-                return (
-                  <button key={b.beach} onClick={() => goToBeach(b.beach)}
-                    aria-label={`Ver previsão de ${b.beach}, condição: ${c.label}`}
-                    style={{ display: "flex", alignItems: "center", gap: 12, border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "18px 20px", cursor: "pointer", background: "#fff", textAlign: "left", width: "100%", transition: "background 0.1s, border-color 0.1s" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#f7f7f7"; e.currentTarget.style.borderColor = "#ccc"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.beach}</div>
-                      <div style={{ fontSize: 12, color: "#999", marginTop: 3 }}>{meta?.state}, {meta?.country}</div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                      <div style={{ fontSize: 10, color: "#bbb", fontWeight: 500 }}>Altura</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>{h?.height ?? "—"}m</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20, flexShrink: 0, background: c.color + "18" }}>
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{c.label}</span>
-                    </div>
-                  </button>
-                );
-              })
+              const c = CONDITIONS[b.cond];
+              const meta = BEACHES_META[b.beach];
+              const h = b.hours?.[currentHour];
+              return (
+                <button key={b.beach} onClick={() => goToBeach(b.beach)}
+                  aria-label={`Ver previsão de ${b.beach}, condição: ${c.label}`}
+                  style={{ display: "flex", alignItems: "center", gap: 12, border: "1.5px solid #e0e0e0", borderRadius: 16, padding: "18px 20px", cursor: "pointer", background: "#fff", textAlign: "left", width: "100%", transition: "background 0.1s, border-color 0.1s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#f7f7f7"; e.currentTarget.style.borderColor = "#ccc"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.beach}</div>
+                    <div style={{ fontSize: 12, color: "#999", marginTop: 3 }}>{meta?.state}, {meta?.country}</div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                    <div style={{ fontSize: 10, color: "#bbb", fontWeight: 500 }}>Altura</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>{h?.height ?? "—"}m</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 20, flexShrink: 0, background: c.color + "18" }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: c.color }}>{c.label}</span>
+                  </div>
+                </button>
+              );
+            })
         }
       </div>
 
@@ -710,9 +710,9 @@ function BeachPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
               {[
-                { label: "Altura total",     value: `${hourData.height}m` },
-                { label: "Vento",            value: `${hourData.windSpeed} km/h ${hourData.windDir} (${hourData.windType === "offshore" ? "terral" : hourData.windType === "onshore" ? "maral" : "lateral"})` },
-                { label: "Swell",            value: `${hourData.swellHeight}m · ${hourData.swellDir}` },
+                { label: "Altura total", value: `${hourData.height}m` },
+                { label: "Vento", value: `${hourData.windSpeed} km/h ${hourData.windDir} (${hourData.windType === "offshore" ? "terral" : hourData.windType === "onshore" ? "maral" : "lateral"})` },
+                { label: "Swell", value: `${hourData.swellHeight}m · ${hourData.swellDir}` },
                 { label: "Período do swell", value: `${hourData.swellPeriod}s` },
               ].map(item => (
                 <div key={item.label} style={{ background: "#f7f7f7", borderRadius: 10, padding: "11px 12px" }}>
@@ -731,7 +731,7 @@ function BeachPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 3 }}>
-                {[0,1,2,3,4].map(i => {
+                {[0, 1, 2, 3, 4].map(i => {
                   const active = swellSegs(hourData.swellKj);
                   return <div key={i} style={{ flex: 1, height: 6, borderRadius: 4, background: i < active ? SW_COLORS[active - 1] : "#e0e0e0" }} />;
                 })}
