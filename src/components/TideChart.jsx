@@ -42,6 +42,32 @@ function interpolateTideCurve(tidePts, steps = 96) {
   return curve;
 }
 
+// Renders a tide point label with smart textAnchor to avoid card edge overflow.
+// Recharts 2.x passes viewBox as { x, y, width, height } centered on the dot.
+function TidePointLabel({ viewBox, isHigh, hour, timeStr }) {
+  if (!viewBox || viewBox.x == null) return null;
+  const cx = viewBox.x + (viewBox.width ?? 0) / 2;
+  const cy = viewBox.y + (viewBox.height ?? 0) / 2;
+
+  const y = isHigh ? cy - 12 : cy + 12;
+  // Adjust anchor near the left/right edges of the 0-24h axis
+  const anchor = hour < 2 ? 'start' : hour > 22 ? 'end' : 'middle';
+
+  return (
+    <text
+      x={cx}
+      y={y}
+      textAnchor={anchor}
+      dominantBaseline={isHigh ? 'auto' : 'hanging'}
+      fontSize={11}
+      fontFamily="'Space Grotesk', sans-serif"
+      fill="var(--text-secondary)"
+    >
+      {timeStr}
+    </text>
+  );
+}
+
 const chartConfig = {
   level: {
     label: 'Nível (m)',
@@ -81,12 +107,12 @@ const TideChart = ({ tides, currentHour }) => {
   const yPad = (maxLevel - minLevel) * 0.45; // Further increased padding for bottom labels
 
   return (
-    <ChartContainer config={chartConfig} className="h-[120px] w-full aspect-auto">
-      <AreaChart data={curveData} margin={{ top: 30, right: 0, bottom: 30, left: 0 }}>
+    <ChartContainer config={chartConfig} className="h-[120px] w-full aspect-auto [&_svg]:overflow-visible">
+      <AreaChart data={curveData} margin={{ top: 16, right: 0, bottom: 16, left: 0 }}>
         <defs>
           <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--text-secondary)" stopOpacity={0.12} />
-            <stop offset="100%" stopColor="var(--text-secondary)" stopOpacity={0.01} />
+            <stop offset="0%" stopColor="var(--text-primary)" stopOpacity={0.20} />
+            <stop offset="100%" stopColor="var(--text-primary)" stopOpacity={0.00} />
           </linearGradient>
         </defs>
 
@@ -136,12 +162,14 @@ const TideChart = ({ tides, currentHour }) => {
             stroke="var(--surface-primary)"
             strokeWidth={2}
             label={{
-              value: fmtTideHr(p.hour),
-              position: p.high ? 'top' : 'bottom',
-              fontSize: 'var(--font-size-subtitle)',
-              fill: 'var(--text-secondary)',
-              fontFamily: 'var(--font-family)',
-              offset: 12,
+              content: (labelProps) => (
+                <TidePointLabel
+                  {...labelProps}
+                  isHigh={p.high}
+                  hour={p.hour}
+                  timeStr={fmtTideHr(p.hour)}
+                />
+              ),
             }}
           />
         ))}

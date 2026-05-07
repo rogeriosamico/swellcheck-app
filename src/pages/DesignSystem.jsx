@@ -439,7 +439,7 @@ const BadgesSection = () => (
         </tr>
       </thead>
       <tbody>
-        <SpecRow label="Font" value="text-token-body-bold · 14px/700" value2="text-token-subtitle-bold · 10px/700" />
+        <SpecRow label="Font" value="text-token-body-bold · 14px/700" value2="text-token-subtitle-bold · 11px/700" />
         <SpecRow label="Border Radius" value="var(--radius-minimal) · 8px" />
         <SpecRow label="Padding X" value="var(--spacing-sm) · 8px" />
         <SpecRow label="Padding Y" value="var(--spacing-xs) · 4px" />

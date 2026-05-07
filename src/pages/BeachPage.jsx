@@ -143,7 +143,7 @@ export default function BeachPage() {
         </div>
       </div>
 
-      <div style={{ padding: "20px 16px 0" }}>
+      <div style={{ padding: "16px 16px 0" }}>
         {loading ? (
           <BeachDetailSkeleton />
         ) : error ? (
@@ -151,7 +151,8 @@ export default function BeachPage() {
             {error}
           </div>
         ) : beachData && hourData ? (
-          <div style={{ border: "1.5px solid var(--border-primary)", borderRadius: "var(--radius-minimal)", padding: "24px 20px" }}>
+
+          <div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-sm)", marginBottom: "var(--spacing-md)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
@@ -166,7 +167,7 @@ export default function BeachPage() {
 
             </div>
 
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-4 mb-4">
               <InfoBlock label="Altura maré" value={`${hourData.height}m`} />
               <InfoBlock label="Vento" value={`${hourData.windSpeed} km/h`} />
               <InfoBlock label="Período" value={`${hourData.swellPeriod}s`} />
@@ -178,10 +179,8 @@ export default function BeachPage() {
               sublabel={SW_LABELS[swellSegs(hourData.swellKj) - 1]}
             />
 
-            <div style={{ height: 1, background: "var(--border-primary)", margin: "20px 0" }} />
-
             {tideError ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-sm)", padding: "12px 14px", borderRadius: "var(--radius-minimal)", background: "var(--surface-terciary)", marginBottom: "var(--spacing-xs)" }}>
+              <div style={{ display: "flex", alignItems: "center", borderRadius: "var(--radius-minimal)", background: "var(--surface-terciary)", marginBottom: "var(--spacing-xs)" }}>
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
                   <circle cx="8" cy="8" r="7" stroke="var(--text-primary)" strokeWidth="1.5" />
                   <path d="M8 5v3.5" stroke="var(--text-primary)" strokeWidth="1.5" strokeLinecap="round" />
@@ -195,7 +194,7 @@ export default function BeachPage() {
               <div className="bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-[var(--radius-minimal)] p-[var(--spacing-md)] mt-4">
                 <span className="text-subtitle font-token-regular text-[var(--text-secondary)] block mb-3">Maré</span>
                 <TideChart tides={tideData?.tides} currentHour={scrubHour} />
-                <div className="mt-6">
+                <div className="mt-1">
                   <TimeSlider value={scrubHour} onChange={setScrubHour} />
                 </div>
               </div>
