@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import Header from "@/components/Header";
@@ -14,6 +14,7 @@ import { SLUG_TO_BEACH, CONDITIONS, SW_LABELS } from "@/lib/constants";
 import { fetchForecast, fetchTide } from "@/lib/api";
 import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr } from "@/lib/dates";
 import { swellSegs } from "@/lib/swell";
+import { parseTidePts, interpolateTideLevel } from "@/lib/tides";
 
 export default function BeachPage() {
   const { slug } = useParams();
@@ -71,6 +72,12 @@ export default function BeachPage() {
       .then(tide => setTideData(tide))
       .catch(() => setTideError(true));
   }, [beach, pageDay, currentHour]);
+
+  const tidePts = useMemo(() => parseTidePts(tideData?.tides), [tideData]);
+  const tideLevel = useMemo(
+    () => tidePts.length > 0 ? interpolateTideLevel(tidePts, scrubHour) : null,
+    [tidePts, scrubHour]
+  );
 
   if (!beach) return null;
 
@@ -168,7 +175,7 @@ export default function BeachPage() {
             </div>
 
             <div className="flex gap-4 mb-4">
-              <InfoBlock label="Altura maré" value={`${hourData.height}m`} />
+              <InfoBlock label="Altura maré" value={tideLevel != null ? `${tideLevel}m` : '—'} />
               <InfoBlock label="Vento" value={`${hourData.windSpeed} km/h`} />
               <InfoBlock label="Período" value={`${hourData.swellPeriod}s`} />
             </div>

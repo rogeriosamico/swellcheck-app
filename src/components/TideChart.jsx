@@ -8,38 +8,14 @@ import {
   ReferenceDot,
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { parseTidePts, interpolateTideCurve } from '@/lib/tides';
 
-/**
- * Formats a decimal hour (e.g. 6.53) to "6:32am"
- */
 function fmtTideHr(h) {
   const hr = Math.floor(h);
   const mn = Math.round((h - hr) * 60);
   const ampm = hr < 12 ? 'am' : 'pm';
   const disp = hr === 0 || hr === 24 ? 12 : hr > 12 ? hr - 12 : hr;
   return `${disp}:${mn < 10 ? '0' + mn : mn}${ampm}`;
-}
-
-/**
- * Generates an interpolated tide curve using Gaussian kernel smoothing.
- * Same algorithm as the one previously in App.jsx.
- */
-function interpolateTideCurve(tidePts, steps = 96) {
-  const curve = [];
-  for (let i = 0; i <= steps; i++) {
-    const h = (i / steps) * 24;
-    let num = 0, den = 0;
-    for (const p of tidePts) {
-      const w = Math.exp(-Math.pow(h - p.hour, 2) / 7);
-      num += p.level * w;
-      den += w;
-    }
-    curve.push({
-      hour: h,
-      level: parseFloat((num / den).toFixed(2)),
-    });
-  }
-  return curve;
 }
 
 // Renders a tide point label with smart textAnchor to avoid card edge overflow.
@@ -85,13 +61,7 @@ const chartConfig = {
  * @param {number}   currentHour - Decimal hour from the scrubber (e.g. 14.5 = 2:30pm)
  */
 const TideChart = ({ tides, currentHour }) => {
-  const tidePts = useMemo(() => {
-    if (!tides || tides.length === 0) return [];
-    return tides.map(t => {
-      const [hr, mn] = t.hour.split(':').map(Number);
-      return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
-    });
-  }, [tides]);
+  const tidePts = useMemo(() => parseTidePts(tides), [tides]);
 
   const curveData = useMemo(() => {
     if (tidePts.length === 0) return [];
