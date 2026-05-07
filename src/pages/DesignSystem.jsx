@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BeachCard from "@/components/BeachCard";
-import { Search, Heart, Palette, Component as ComponentIcon, Droplets } from "lucide-react";
+import { Search, Heart, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { ptBR } from "date-fns/locale";
 import { format } from "date-fns";
 import InfoBlock from "@/components/InfoBlock";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import TideChart from "@/components/TideChart";
 import TimeSlider from "@/components/TimeSlider";
 
@@ -31,6 +32,7 @@ function getCSSVar(name) {
 const DesignSystem = () => {
   const [activeTab, setActiveTab] = useState('fundamentos');
   const [activeSubTab, setActiveSubTab] = useState('cores');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menuItems = [
     {
@@ -87,72 +89,100 @@ const DesignSystem = () => {
     return <ColorsSection />;
   };
 
+  const toggleBtnStyle = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 32, height: 32, borderRadius: 'var(--radius-minimal)',
+    border: 'none', cursor: 'pointer', background: 'transparent',
+    color: 'var(--text-invert)', flexShrink: 0,
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--font-family)' }}>
       {/* Sidebar */}
-      <aside style={{
-        width: 240,
-        background: 'var(--surface-secondary)',
-        color: 'var(--text-invert)',
-        position: 'fixed',
-        height: '100vh',
-        overflowY: 'auto',
-      }}>
-        <div style={{ padding: 'var(--spacing-lg) var(--spacing-md)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
-            <Droplets size={20} style={{ color: '#60a5fa' }} />
-            <span style={{ fontSize: 'var(--font-size-headline)', fontWeight: 'var(--font-weight-bold)' }}>Swell Check</span>
-          </div>
-          <span style={{ fontSize: 'var(--font-size-subtitle)', opacity: 0.4 }}>Design System</span>
-        </div>
-
-        <nav style={{ padding: 'var(--spacing-md) var(--spacing-sm)' }}>
-          {menuItems.map((item) => (
-            <div key={item.id} style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <button
-                onClick={() => { setActiveTab(item.id); setActiveSubTab(item.subItems[0].id); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)',
-                  width: '100%', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-minimal)',
-                  border: 'none', cursor: 'pointer',
-                  fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', fontFamily: 'var(--font-family)',
-                  background: activeTab === item.id ? 'rgba(255,255,255,0.1)' : 'transparent',
-                  color: activeTab === item.id ? '#fff' : 'rgba(255,255,255,0.5)',
-                }}
-              >
-                <item.icon size={16} />
-                {item.label}
-              </button>
-              <div style={{ marginLeft: 36, marginTop: 'var(--spacing-xs)' }}>
-                {item.subItems.map((sub) => (
-                  <button
-                    key={sub.id}
-                    onClick={() => { setActiveTab(item.id); setActiveSubTab(sub.id); }}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'left',
-                      padding: '6px var(--spacing-sm)', borderRadius: 'var(--radius-minimal)',
-                      border: 'none', cursor: 'pointer',
-                      fontSize: 'var(--font-size-body)', fontFamily: 'var(--font-family)',
-                      background: 'transparent',
-                      color: activeTab === item.id && activeSubTab === sub.id
-                        ? '#60a5fa'
-                        : 'rgba(255,255,255,0.35)',
-                      fontWeight: activeTab === item.id && activeSubTab === sub.id ? 'var(--font-weight-bold)' : 'var(--font-weight-regular)',
-                    }}
-                  >
-                    {sub.label}
-                  </button>
-                ))}
-              </div>
+      {sidebarOpen && (
+        <aside style={{
+          width: 240,
+          background: 'var(--surface-secondary)',
+          color: 'var(--text-invert)',
+          position: 'fixed',
+          height: '100vh',
+          overflowY: 'auto',
+        }}>
+          <div style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <span style={{ fontSize: 'var(--font-size-headline)', fontWeight: 'var(--font-weight-bold)', display: 'block' }}>Swell Check</span>
+              <span style={{ fontSize: 'var(--font-size-subtitle)', opacity: 0.4 }}>Design System</span>
             </div>
-          ))}
-        </nav>
-      </aside>
+            <button onClick={() => setSidebarOpen(false)} style={toggleBtnStyle} aria-label="Fechar sidebar">
+              <PanelLeftClose size={18} />
+            </button>
+          </div>
+
+          <nav style={{ padding: 'var(--spacing-md) var(--spacing-sm)' }}>
+            {menuItems.map((item) => (
+              <div key={item.id} style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <button
+                  onClick={() => { setActiveTab(item.id); setActiveSubTab(item.subItems[0].id); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)',
+                    width: '100%', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-minimal)',
+                    border: 'none', cursor: 'pointer',
+                    fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', fontFamily: 'var(--font-family)',
+                    background: activeTab === item.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                    color: activeTab === item.id ? 'var(--text-invert)' : 'rgba(255,255,255,0.5)',
+                  }}
+                >
+                  <item.icon size={16} />
+                  {item.label}
+                </button>
+                <div style={{ marginLeft: 36, marginTop: 'var(--spacing-xs)' }}>
+                  {item.subItems.map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => { setActiveTab(item.id); setActiveSubTab(sub.id); }}
+                      style={{
+                        display: 'block', width: '100%', textAlign: 'left',
+                        padding: '6px var(--spacing-sm)', borderRadius: 'var(--radius-minimal)',
+                        border: 'none', cursor: 'pointer',
+                        fontSize: 'var(--font-size-body)', fontFamily: 'var(--font-family)',
+                        background: 'transparent',
+                        color: activeTab === item.id && activeSubTab === sub.id
+                          ? 'var(--text-invert)'
+                          : 'rgba(255,255,255,0.35)',
+                        fontWeight: activeTab === item.id && activeSubTab === sub.id ? 'var(--font-weight-bold)' : 'var(--font-weight-regular)',
+                      }}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </aside>
+      )}
+
+      {/* Botão para reabrir a sidebar quando fechada */}
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Abrir sidebar"
+          style={{
+            position: 'fixed', top: 'var(--spacing-md)', left: 'var(--spacing-md)',
+            zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 36, height: 36, borderRadius: 'var(--radius-minimal)',
+            border: '1px solid var(--border-primary)', cursor: 'pointer',
+            background: 'var(--surface-primary)', color: 'var(--text-primary)',
+          }}
+        >
+          <PanelLeft size={18} />
+        </button>
+      )}
 
       {/* Main */}
       <main style={{
         flex: 1,
-        marginLeft: 240,
+        marginLeft: sidebarOpen ? 240 : 0,
         padding: 'var(--spacing-xl)',
         background: 'var(--surface-primary)',
         minHeight: '100vh',
@@ -237,32 +267,28 @@ const ColorsSection = () => (
 );
 
 const ColorTable = ({ tokens }) => (
-  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-    <thead>
-      <tr style={{ borderBottom: '1px solid var(--border-primary)', textAlign: 'left' }}>
-        <Th>Swatch</Th>
-        <Th>Figma Variable</Th>
-        <Th>CSS Variable</Th>
-        <Th>Valor atual</Th>
-      </tr>
-    </thead>
-    <tbody>
+  <Table>
+    <TableHeader>
+      <TableRow>
+        <TableHead>Swatch</TableHead>
+        <TableHead>Figma Variable</TableHead>
+        <TableHead>CSS Variable</TableHead>
+        <TableHead>Valor atual</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
       {tokens.map(t => (
-        <tr key={t.name} style={{ borderBottom: '1px solid var(--border-primary)' }}>
-          <td style={{ padding: '12px 0' }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 'var(--radius-minimal)',
-              background: `var(--${t.name})`,
-              border: '1px solid var(--border-primary)',
-            }} />
-          </td>
-          <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-body)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</td>
-          <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</td>
-          <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace' }}>{getCSSVar(`--${t.name}`)}</td>
-        </tr>
+        <TableRow key={t.name}>
+          <TableCell style={{ padding: '12px 0' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-minimal)', background: `var(--${t.name})`, border: '1px solid var(--border-primary)' }} />
+          </TableCell>
+          <TableCell style={{ fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</TableCell>
+          <TableCell style={{ fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</TableCell>
+          <TableCell style={{ fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace' }}>{getCSSVar(`--${t.name}`)}</TableCell>
+        </TableRow>
       ))}
-    </tbody>
-  </table>
+    </TableBody>
+  </Table>
 );
 
 // --- Typography ---
@@ -295,32 +321,32 @@ const TypographySection = () => (
       Cada classe token encapsula tamanho e peso juntos — nunca aplicar <code style={{ fontFamily: 'monospace' }}>font-size</code> e <code style={{ fontFamily: 'monospace' }}>font-weight</code> separadamente em componentes. As variáveis CSS (<code style={{ fontFamily: 'monospace' }}>--font-size-*</code>, <code style={{ fontFamily: 'monospace' }}>--font-weight-*</code>) são reservadas para contextos sem acesso a classes, como SVG labels e estilos inline no Recharts.
     </p>
 
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr style={{ borderBottom: '1px solid var(--border-primary)', textAlign: 'left' }}>
-          <Th>Figma Variable</Th>
-          <Th>CSS Variable</Th>
-          <Th>Value</Th>
-          <Th>Amostra</Th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Figma Variable</TableHead>
+          <TableHead>CSS Variable</TableHead>
+          <TableHead>Value</TableHead>
+          <TableHead>Amostra</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {typographyTokens.map(t => (
-          <tr key={t.name + t.className} style={{ borderBottom: '1px solid var(--border-primary)' }}>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>{t.name}</td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+          <TableRow key={t.name + t.className}>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontWeight: 'var(--font-weight-bold)' }}>{t.name}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
               {t.sizeVar} / {t.weightVar}
-            </td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+            </TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-subtitle)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
               {getCSSVar(t.sizeVar)} · {getCSSVar(t.weightVar)}
-            </td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: `var(${t.sizeVar})`, fontWeight: `var(${t.weightVar})`, fontFamily: 'var(--font-family)' }}>
+            </TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontSize: `var(${t.sizeVar})`, fontWeight: `var(${t.weightVar})` }}>
               Swell Check
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   </div>
 );
 
@@ -340,28 +366,28 @@ const SpacingSection = () => (
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
       Nunca usar valores de pixel avulsos em componentes reutilizáveis — sempre <code style={{ fontFamily: 'monospace' }}>var(--spacing-*)</code>. Exceção: <code style={{ fontFamily: 'monospace' }}>padding-top: 40px</code> e <code style={{ fontFamily: 'monospace' }}>padding-bottom: 80px</code> nos layouts de página (HomeScreen, BeachPage), que ainda não têm token formal.
     </p>
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr style={{ borderBottom: '1px solid var(--border-primary)', textAlign: 'left' }}>
-          <Th>Figma Variable</Th>
-          <Th>CSS Variable</Th>
-          <Th>Value</Th>
-          <Th>Preview</Th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Figma Variable</TableHead>
+          <TableHead>CSS Variable</TableHead>
+          <TableHead>Value</TableHead>
+          <TableHead>Preview</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {spacingTokens.map(t => (
-          <tr key={t.name} style={{ borderBottom: '1px solid var(--border-primary)' }}>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>{getCSSVar(`--${t.name}`)}</td>
-            <td style={{ padding: 'var(--spacing-md) 0' }}>
+          <TableRow key={t.name}>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontWeight: 'var(--font-weight-bold)' }}>{getCSSVar(`--${t.name}`)}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0' }}>
               <div style={{ width: `max(var(--${t.name}), 2px)`, height: 20, background: 'var(--text-primary)', borderRadius: 2 }} />
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   </div>
 );
 
@@ -378,28 +404,28 @@ const RadiusSection = () => (
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
       Cada componente tem um token de radius atribuído — não escolher por preferência visual. <code style={{ fontFamily: 'monospace' }}>--radius-full</code> está definido no sistema mas sem uso em nenhum componente atual.
     </p>
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr style={{ borderBottom: '1px solid var(--border-primary)', textAlign: 'left' }}>
-          <Th>Figma Variable</Th>
-          <Th>CSS Variable</Th>
-          <Th>Value</Th>
-          <Th>Preview</Th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Figma Variable</TableHead>
+          <TableHead>CSS Variable</TableHead>
+          <TableHead>Value</TableHead>
+          <TableHead>Preview</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {radiusTokens.map(t => (
-          <tr key={t.name} style={{ borderBottom: '1px solid var(--border-primary)' }}>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</td>
-            <td style={{ padding: 'var(--spacing-md) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)' }}>{getCSSVar(`--${t.name}`)}</td>
-            <td style={{ padding: 'var(--spacing-md) 0' }}>
+          <TableRow key={t.name}>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{t.figma}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontWeight: 'var(--font-weight-bold)' }}>--{t.name}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0', fontWeight: 'var(--font-weight-bold)' }}>{getCSSVar(`--${t.name}`)}</TableCell>
+            <TableCell style={{ padding: 'var(--spacing-md) 0' }}>
               <div style={{ width: 48, height: 48, background: 'var(--text-primary)', borderRadius: `var(--${t.name})` }} />
-            </td>
-          </tr>
+            </TableCell>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   </div>
 );
 
@@ -430,22 +456,40 @@ const BadgesSection = () => (
     </div>
 
     <SectionTitle>Figma Specs</SectionTitle>
-    <table style={{ width: '100%', borderCollapse: 'collapse', maxWidth: 500 }}>
-      <thead>
-        <tr style={{ borderBottom: '1px solid var(--border-primary)', textAlign: 'left' }}>
-          <Th>Prop</Th>
-          <Th>default</Th>
-          <Th>small</Th>
-        </tr>
-      </thead>
-      <tbody>
-        <SpecRow label="Font" value="text-token-body-bold · 14px/700" value2="text-token-subtitle-bold · 11px/700" />
-        <SpecRow label="Border Radius" value="var(--radius-minimal) · 8px" />
-        <SpecRow label="Padding X" value="var(--spacing-sm) · 8px" />
-        <SpecRow label="Padding Y" value="var(--spacing-xs) · 4px" />
-        <SpecRow label="Border" value="none" />
-      </tbody>
-    </table>
+    <div style={{ maxWidth: 500 }}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Prop</TableHead>
+            <TableHead>default</TableHead>
+            <TableHead>small</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell style={{ color: 'var(--text-secondary)' }}>Font</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>text-token-body-bold · 14px/700</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>text-token-subtitle-bold · 11px/700</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell style={{ color: 'var(--text-secondary)' }}>Border Radius</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>var(--radius-minimal) · 8px</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell style={{ color: 'var(--text-secondary)' }}>Padding X</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>var(--spacing-sm) · 8px</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell style={{ color: 'var(--text-secondary)' }}>Padding Y</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>var(--spacing-xs) · 4px</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell style={{ color: 'var(--text-secondary)' }}>Border</TableCell>
+            <TableCell style={{ fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>none</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
   </div>
 );
 
@@ -733,20 +777,5 @@ const SectionTitle = ({ children, style: extraStyle }) => (
   </p>
 );
 
-const Th = ({ children }) => (
-  <th style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', fontWeight: 'var(--font-weight-bold)' }}>
-    {children}
-  </th>
-);
-
-const SpecRow = ({ label, value, value2 }) => (
-  <tr style={{ borderBottom: '1px solid var(--border-primary)' }}>
-    <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)' }}>{label}</td>
-    <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>{value}</td>
-    {value2 !== undefined && (
-      <td style={{ padding: 'var(--spacing-sm) 0', fontSize: 'var(--font-size-body)', fontWeight: 'var(--font-weight-bold)', fontFamily: 'monospace' }}>{value2}</td>
-    )}
-  </tr>
-);
 
 export default DesignSystem;
