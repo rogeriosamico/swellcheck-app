@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Calendar, Info } from "lucide-react";
 import Header from "@/components/Header";
 import { BeachDetailSkeleton } from "@/components/Skeleton";
 import TideChart from "@/components/TideChart";
@@ -126,11 +126,7 @@ export default function BeachPage() {
                   aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
                   className="text-button font-token-bold flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] rounded-[var(--radius-minimal)] border-[1.5px] border-[var(--border-primary)] bg-[var(--surface-primary)] text-[var(--text-primary)] whitespace-nowrap h-[var(--touch-target)]"
                 >
-                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.8 }}>
-                    <rect x="1.5" y="3.5" width="13" height="11" rx="2" stroke="var(--text-primary)" strokeWidth="1.5" />
-                    <path d="M1.5 7h13" stroke="var(--text-primary)" strokeWidth="1.5" />
-                    <path d="M5 1.5v3M11 1.5v3" stroke="var(--text-primary)" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
+                  <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80" />
                   {shortDateLabel(pageDay)}
                 </button>
               }
@@ -188,11 +184,7 @@ export default function BeachPage() {
 
             {tideError ? (
               <div style={{ display: "flex", alignItems: "center", borderRadius: "var(--radius-minimal)", background: "var(--surface-terciary)", marginBottom: "var(--spacing-xs)" }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
-                  <circle cx="8" cy="8" r="7" stroke="var(--text-primary)" strokeWidth="1.5" />
-                  <path d="M8 5v3.5" stroke="var(--text-primary)" strokeWidth="1.5" strokeLinecap="round" />
-                  <circle cx="8" cy="11.5" r="0.75" fill="var(--text-primary)" />
-                </svg>
+                <Info className="w-[14px] h-[14px] shrink-0 opacity-40" />
                 <span style={{ fontSize: "var(--font-size-subtitle)", color: "var(--text-secondary)" }}>
                   Dados de maré temporariamente indisponíveis.
                 </span>

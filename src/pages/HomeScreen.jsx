@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import Header from "@/components/Header";
 import { HomeCardSkeleton } from "@/components/Skeleton";
 import { Input } from "@/components/ui/input";
@@ -76,8 +76,9 @@ export default function HomeScreen() {
             initialDate={selectedDay}
             onApply={day => setSelectedDay(day)}
             trigger={
-              <Button aria-label="Filtrar por data" size="xl">
-                Filtrar por data
+              <Button aria-label="Filtrar por data" size="xl" className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Data
               </Button>
             }
           />

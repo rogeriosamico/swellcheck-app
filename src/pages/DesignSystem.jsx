@@ -272,7 +272,7 @@ const typographyTokens = [
   { name: 'Title sm', sizeVar: '--font-size-title-sm', weightVar: '--font-weight-bold', className: 'text-token-title-sm' },
   { name: 'Headline', sizeVar: '--font-size-headline', weightVar: '--font-weight-bold', className: 'text-token-headline' },
   { name: 'Button label', sizeVar: '--font-size-button', weightVar: '--font-weight-bold', className: 'text-token-button' },
-  { name: 'Input label', sizeVar: '--font-size-body', weightVar: '--font-weight-regular', className: 'text-token-body' },
+  { name: 'Input label', sizeVar: '--font-size-input-label', weightVar: '--font-weight-regular', className: 'text-token-input-label' },
   { name: 'Body', sizeVar: '--font-size-body', weightVar: '--font-weight-regular', className: 'text-token-body' },
   { name: 'Subtitle', sizeVar: '--font-size-subtitle', weightVar: '--font-weight-regular', className: 'text-token-subtitle' },
   { name: 'Subtitle bold', sizeVar: '--font-size-subtitle', weightVar: '--font-weight-bold', className: 'text-token-subtitle-bold' },

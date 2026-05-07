@@ -61,6 +61,7 @@
     --font-size-button: 14px;
     --font-size-body: 14px;
     --font-size-subtitle: 11px;
+    --font-size-input-label: 16px;
     --font-weight-bold: 700;
     --font-weight-regular: 400;
 
@@ -170,6 +171,11 @@
     font-weight: var(--font-weight-bold);
   }
 
+  .text-token-input-label {
+    font-size: var(--font-size-input-label);
+    font-weight: var(--font-weight-regular);
+  }
+
   .text-token-body {
     font-size: var(--font-size-body);
     font-weight: var(--font-weight-regular);
@@ -227,4 +233,11 @@
   100% {
     background-position: -200% 0;
   }
+}
+
+/* Prevents iOS Safari auto-zoom on input focus (threshold: 16px) */
+input,
+textarea,
+select {
+  font-size: var(--font-size-input-label);
 }
