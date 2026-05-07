@@ -1,10 +1,230 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* =============================================
+       FIGMA TOKENS — Light Mode
+       Source: Figma Variables JSON Export
+       ============================================= */
+
+    /* text/ */
+    --text-primary: #282828;
+    --text-secondary: #6C6C6C;
+    --text-brand: #282828;
+    --text-invert: #F7F7F7;
+    --text-storm: #BA0000;
+    --text-bom: #009751;
+    --text-marola: #C1A200;
+    --text-flat: #A05D19;
+
+    /* surface/ */
+    --surface-primary: #F7F7F7;
+    --surface-secondary: #282828;
+    --surface-terciary: #E7E7E7;
+    --surface-storm-solid: #BA0000;
+    --surface-bom-solid: #009751;
+    --surface-marola-solid: #C1A200;
+    --surface-flat-solid: #A05D19;
+    --surface-storm-gradient: rgba(186, 0, 0, 0.1);
+    --surface-bom-gradient: rgba(0, 151, 81, 0.1);
+    --surface-marola-gradient: rgba(162, 137, 6, 0.1);
+    --surface-flat-gradient: rgba(160, 93, 25, 0.1);
+
+    /* border/ */
+    --border-primary: #E7E7E7;
+
+    /* spacing/ */
+    --spacing-none: 0px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 32px;
+    --spacing-xl: 64px;
+
+    /* radius/ */
+    --radius-minimal: 8px;
+    --radius-rounded: 16px;
+    --radius-full: 32px;
+
+    /* interaction/ */
+    --touch-target: 44px;
+
+    /* typography */
+    --font-family: 'Space Grotesk', sans-serif;
+    --font-size-title: 32px;
+    --font-size-title-sm: 24px;
+    --font-size-headline: 18px;
+    --font-size-button: 14px;
+    --font-size-body: 14px;
+    --font-size-subtitle: 10px;
+    --font-weight-bold: 700;
+    --font-weight-regular: 400;
+
+    /* =============================================
+       SHADCN UI — HSL Compatibility (Light)
+       ============================================= */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 16%;
+    --primary: 0 0% 16%;
+    --primary-foreground: 0 0% 97%;
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 16%;
+    --muted: 0 0% 91%;
+    --muted-foreground: 0 0% 51%;
+    --accent: 0 0% 91%;
+    --accent-foreground: 0 0% 16%;
+    --destructive: 0 100% 36%;
+    --destructive-foreground: 0 0% 97%;
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 0 0% 16%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* =============================================
+       FIGMA TOKENS — Dark Mode
+       Source: Figma Variables JSON Export
+       ============================================= */
+
+    /* text/ */
+    --text-primary: #F7F7F7;
+    --text-secondary: #818181;
+    --text-brand: #282828;
+    --text-invert: #282828;
+    --text-storm: #BA0000;
+    --text-bom: #009751;
+    --text-marola: #A28906;
+    --text-flat: #A05D19;
+
+    /* surface/ */
+    --surface-primary: #282828;
+    --surface-secondary: #F7F7F7;
+    --surface-terciary: #FFFFFF;
+    --surface-storm-solid: #FFFFFF;
+    --surface-bom-solid: #FFFFFF;
+    --surface-marola-solid: #FFFFFF;
+    --surface-flat-solid: #FFFFFF;
+    --surface-storm-gradient: rgba(186, 0, 0, 0.1);
+    --surface-bom-gradient: rgba(0, 151, 81, 0.1);
+    --surface-marola-gradient: rgba(162, 137, 6, 0.1);
+    --surface-flat-gradient: rgba(160, 93, 25, 0.1);
+
+    /* border/ */
+    --border-primary: #606060;
+
+    /* SHADCN compatibility (Dark) */
+    --background: 0 0% 16%;
+    --foreground: 0 0% 97%;
+    --card: 0 0% 16%;
+    --card-foreground: 0 0% 97%;
+    --popover: 0 0% 16%;
+    --popover-foreground: 0 0% 97%;
+    --primary: 0 0% 97%;
+    --primary-foreground: 0 0% 16%;
+    --secondary: 0 0% 24%;
+    --secondary-foreground: 0 0% 97%;
+    --muted: 0 0% 24%;
+    --muted-foreground: 0 0% 51%;
+    --accent: 0 0% 24%;
+    --accent-foreground: 0 0% 97%;
+    --destructive: 0 100% 36%;
+    --destructive-foreground: 0 0% 97%;
+    --border: 0 0% 38%;
+    --input: 0 0% 38%;
+    --ring: 0 0% 97%;
+  }
 }
 
-html, body, #root {
-  min-height: 100vh;
-  background: #fff;
+@layer components {
+
+  /* =============================================
+     UNIFIED TYPOGRAPHY TOKENS
+     Encapsulates Size + Weight
+     ============================================= */
+  .text-token-title {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-token-title-sm {
+    font-size: var(--font-size-title-sm);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-token-headline {
+    font-size: var(--font-size-headline);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-token-button {
+    font-size: var(--font-size-button);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-token-body {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .text-token-body-bold {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .text-token-subtitle {
+    font-size: var(--font-size-subtitle);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .text-token-subtitle-bold {
+    font-size: var(--font-size-subtitle);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    @apply border-border;
+  }
+
+  html {
+    overflow-x: hidden;
+    background: var(--surface-primary);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-family);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+@keyframes skeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
