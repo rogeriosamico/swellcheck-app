@@ -8,6 +8,8 @@ export const BEACHES_META = {
   "Cacimba do Padre":   { state: "PE", country: "Brasil", slug: "cacimba-do-padre" },
   "Jericoacoara":       { state: "CE", country: "Brasil", slug: "jericoacoara" },
   "Tourinhos":          { state: "RN", country: "Brasil", slug: "tourinhos" },
+  "Janga":              { state: "PE", country: "Brasil", slug: "janga" },
+  "Olinda":             { state: "PE", country: "Brasil", slug: "olinda" },
 };
 
 export const SLUG_TO_BEACH = Object.fromEntries(
