@@ -10,6 +10,7 @@ import DateFilterModal from "@/components/DateFilterModal";
 import { BEACHES, BEACHES_META, CONDITIONS, COND_DESCS, COND_ORDER } from "@/lib/constants";
 import { fetchForecastAll } from "@/lib/api";
 import { getToday, parseDateLabel } from "@/lib/dates";
+import { getCachedList, saveCachedList } from "@/lib/listCache";
 
 export default function HomeScreen() {
   const navigate = useNavigate();
@@ -20,18 +21,37 @@ export default function HomeScreen() {
   const [selectedDay, setSelectedDay] = useState(todayIso);
   const [goodBeaches, setGoodBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    setListLoading(true);
-    setGoodBeaches([]);
-    fetchForecastAll(selectedDay)
-      .then(beaches => {
-        const sorted = [...beaches].sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
-        setGoodBeaches(sorted);
+    const controller = new AbortController();
+    const sort = (list) => [...list].sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
+
+    const cached = getCachedList(selectedDay);
+    if (cached) {
+      setGoodBeaches(sort(cached));
+      setListLoading(false);
+    } else {
+      setListLoading(true);
+      setGoodBeaches([]);
+    }
+    setError(false);
+
+    fetchForecastAll(selectedDay, controller.signal)
+      .then(({ beaches, total, loaded }) => {
+        setGoodBeaches(sort(beaches));
         setListLoading(false);
+        if (loaded === total) saveCachedList(selectedDay, beaches);
       })
-      .catch(() => setListLoading(false));
-  }, [selectedDay]);
+      .catch(err => {
+        if (err.name === "AbortError") return;
+        setListLoading(false);
+        if (!getCachedList(selectedDay)) setError(true);
+      });
+
+    return () => controller.abort();
+  }, [selectedDay, retryCount]);
 
   const filtered = query.trim()
     ? goodBeaches.filter(b => b.beach.toLowerCase().includes(query.trim().toLowerCase()))
@@ -92,27 +112,34 @@ export default function HomeScreen() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-sm)" }}>
-        {listLoading
+        {listLoading && goodBeaches.length === 0
           ? BEACHES.map((_, i) => <HomeCardSkeleton key={i} />)
-          : filtered.length === 0
-            ? <div style={{ fontSize: "var(--font-size-body)", color: "var(--text-secondary)", padding: "24px 0" }}>Nenhuma praia encontrada.</div>
-            : filtered.map(b => {
-              const c = CONDITIONS[b.cond];
-              const meta = BEACHES_META[b.beach];
-              const h = b.hours?.[currentHour];
-              return (
-                <BeachCard
-                  key={b.beach}
-                  name={b.beach}
-                  state={meta?.state}
-                  country={meta?.country}
-                  height={h?.height}
-                  condition={b.cond}
-                  label={c.label}
-                  onClick={() => goToBeach(b.beach)}
-                />
-              );
-            })
+          : error && goodBeaches.length === 0
+            ? (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div style={{ fontSize: "var(--font-size-body)", color: "var(--text-secondary)", marginBottom: 16 }}>Não foi possível carregar as praias.</div>
+                <Button variant="outline" onClick={() => setRetryCount(c => c + 1)}>Tentar novamente</Button>
+              </div>
+            )
+            : filtered.length === 0
+              ? <div style={{ fontSize: "var(--font-size-body)", color: "var(--text-secondary)", padding: "24px 0" }}>Nenhuma praia encontrada.</div>
+              : filtered.map(b => {
+                const c = CONDITIONS[b.cond];
+                const meta = BEACHES_META[b.beach];
+                const h = b.hours?.[currentHour];
+                return (
+                  <BeachCard
+                    key={b.beach}
+                    name={b.beach}
+                    state={meta?.state}
+                    country={meta?.country}
+                    height={h?.height}
+                    condition={b.cond}
+                    label={c.label}
+                    onClick={() => goToBeach(b.beach)}
+                  />
+                );
+              })
         }
       </div>
 

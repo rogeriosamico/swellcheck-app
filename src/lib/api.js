@@ -1,9 +1,9 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:3000";
 
-export async function fetchForecastAll(date) {
-  const res = await fetch(`${API_BASE}/forecast-all?date=${date}`);
+export async function fetchForecastAll(date, signal) {
+  const res = await fetch(`${API_BASE}/forecast-all?date=${date}`, { signal });
   if (!res.ok) throw new Error("Erro na API");
-  return (await res.json()).beaches;
+  return res.json();
 }
 
 export async function fetchForecast(beach, date) {
