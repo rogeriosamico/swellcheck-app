@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BeachCard from "@/components/BeachCard";
-import { Search, Heart, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose } from "lucide-react";
+import { Search, Heart, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
@@ -712,6 +712,112 @@ const ModalSection = () => {
           trigger={<Button>Abrir Filtro de Data</Button>}
         />
       </div>
+
+      <div style={{ height: 1, background: 'var(--border-primary)', width: '100%' }} />
+
+      {/* 3. Modal de Compartilhamento */}
+      <ShareModalDemo />
+    </div>
+  );
+};
+
+const ShareModalDemo = () => {
+  const [open, setOpen] = useState(false);
+  const [copyConfirmed, setCopyConfirmed] = useState(false);
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const demoUrl = 'https://swellcheck.com.br/praia/paiva';
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(demoUrl);
+      setCopyConfirmed(true);
+      setTimeout(() => setCopyConfirmed(false), 2000);
+    } catch { /* ignore */ }
+  };
+
+  const apps = [
+    { label: 'WhatsApp', icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(demoUrl)}`, target: '_blank' },
+    { label: 'Telegram', icon: <Send size={16} />, href: `https://t.me/share/url?url=${encodeURIComponent(demoUrl)}`, target: '_blank' },
+    { label: 'E-mail', icon: <Mail size={16} />, href: `mailto:?subject=${encodeURIComponent('Swell Check')}&body=${encodeURIComponent(demoUrl)}`, target: undefined },
+    { label: 'Facebook', icon: <ExternalLink size={16} />, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(demoUrl)}`, target: '_blank' },
+    { label: 'X', icon: <ExternalLink size={16} />, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(demoUrl)}`, target: '_blank' },
+  ];
+
+  return (
+    <div style={{ maxWidth: 500 }}>
+      <SectionTitle>3. Modal de Compartilhamento</SectionTitle>
+      <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+        Ativado pelo botão Share no Header da BeachPage (controlado via estado <code style={{ fontFamily: 'monospace' }}>shareOpen</code> em BeachPage.jsx). Exibe atalhos diretos para os principais apps de compartilhamento + campo com o link e botão de copiar. Funciona igual em mobile e desktop.
+      </p>
+
+      <Button variant="outline" onClick={() => setOpen(true)}>Abrir Modal de Share</Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-[380px] p-6 gap-0 overflow-hidden">
+          <DialogHeader className="mb-6">
+            <DialogTitle>Compartilhar</DialogTitle>
+            <DialogDescription>
+              Compartilhe com seus amigos e mostre se vale a pena ir surfar hoje.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative flex items-center mb-6 min-w-0">
+            {canScrollLeft && (
+              <button
+                onClick={() => scrollRef.current?.scrollBy({ left: -140, behavior: 'smooth' })}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+            <div
+              ref={(el) => { scrollRef.current = el; if (el) checkScroll(); }}
+              onScroll={checkScroll}
+              className="flex gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0"
+            >
+              {apps.map(({ label, icon, href, target }) => (
+                <a key={label} href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="shrink-0">
+                  <Button variant="outline" className="h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                    {icon}{label}
+                  </Button>
+                </a>
+              ))}
+            </div>
+            {canScrollRight && (
+              <button
+                onClick={() => scrollRef.current?.scrollBy({ left: 140, behavior: 'smooth' })}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="h-px bg-[var(--border-primary)] mb-6" />
+
+          <Input
+            readOnly
+            value={demoUrl}
+            className="mb-3 text-[var(--text-secondary)] bg-[var(--surface-terciary)] border-[var(--border-primary)] cursor-default"
+            onClick={(e) => e.target.select()}
+          />
+          <Button
+            onClick={handleCopy}
+            className="w-full h-12 rounded-[var(--radius-rounded)] gap-2"
+          >
+            {copyConfirmed ? <><Check size={16} /> Copiado!</> : 'Copiar link'}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

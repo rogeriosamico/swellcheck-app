@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Calendar, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check } from "lucide-react";
 import Header from "@/components/Header";
 import { BeachDetailSkeleton } from "@/components/Skeleton";
 import TideChart from "@/components/TideChart";
@@ -10,6 +10,14 @@ import InfoBlock from "@/components/InfoBlock";
 import DateFilterModal from "@/components/DateFilterModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { SLUG_TO_BEACH, CONDITIONS, SW_LABELS } from "@/lib/constants";
 import { fetchForecast, fetchTide } from "@/lib/api";
 import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr } from "@/lib/dates";
@@ -44,6 +52,18 @@ export default function BeachPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrubHour, setScrubHour] = useState(currentHour);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copyConfirmed, setCopyConfirmed] = useState(false);
+  const shareScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkShareScroll = () => {
+    const el = shareScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
 
   useEffect(() => {
     if (!beach) navigate("/", { replace: true });
@@ -86,13 +106,26 @@ export default function BeachPage() {
   const dayCond = beachData?.cond;
   const condColor = dayCond ? CONDITIONS[dayCond]?.color : "var(--text-secondary)";
 
+  const shareUrl = window.location.href;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyConfirmed(true);
+      setTimeout(() => setCopyConfirmed(false), 2000);
+    } catch {
+      // clipboard indisponível
+    }
+  };
+
   return (
     <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "0 0 80px" }}>
       <Header
         variant="beach"
         title={beach}
         onBack={() => navigate("/")}
-        onShare={() => { }}
+        showShare={true}
+        onShare={() => setShareOpen(true)}
       />
 
       <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface-primary)" }}>
@@ -202,6 +235,70 @@ export default function BeachPage() {
           </div>
         ) : null}
       </div>
+
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent className="max-w-[380px] p-6 gap-0 overflow-hidden">
+          <DialogHeader className="mb-6">
+            <DialogTitle>Compartilhar</DialogTitle>
+            <DialogDescription>
+              Compartilhe com seus amigos e mostre se vale a pena ir surfar hoje.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative flex items-center mb-6 min-w-0">
+            {canScrollLeft && (
+              <button
+                onClick={() => shareScrollRef.current?.scrollBy({ left: -140, behavior: 'smooth' })}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+            <div
+              ref={(el) => { shareScrollRef.current = el; if (el) checkShareScroll(); }}
+              onScroll={checkShareScroll}
+              className="flex gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0"
+            >
+              {[
+                { label: 'WhatsApp', icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { label: 'Telegram', icon: <Send size={16} />, href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { label: 'E-mail', icon: <Mail size={16} />, href: `mailto:?subject=${encodeURIComponent(`Swell Check — ${beach}`)}&body=${encodeURIComponent(shareUrl)}`, target: undefined },
+                { label: 'Facebook', icon: <ExternalLink size={16} />, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { label: 'X', icon: <ExternalLink size={16} />, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+              ].map(({ label, icon, href, target }) => (
+                <a key={label} href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="shrink-0">
+                  <Button variant="outline" className="h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                    {icon}{label}
+                  </Button>
+                </a>
+              ))}
+            </div>
+            {canScrollRight && (
+              <button
+                onClick={() => shareScrollRef.current?.scrollBy({ left: 140, behavior: 'smooth' })}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="h-px bg-[var(--border-primary)] mb-6" />
+
+          <Input
+            readOnly
+            value={shareUrl}
+            className="mb-3 text-[var(--text-secondary)] bg-[var(--surface-terciary)] border-[var(--border-primary)] cursor-default"
+            onClick={(e) => e.target.select()}
+          />
+          <Button
+            onClick={handleCopyLink}
+            className="w-full h-12 rounded-[var(--radius-rounded)] gap-2"
+          >
+            {copyConfirmed ? <><Check size={16} /> Copiado!</> : "Copiar link"}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

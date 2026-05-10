@@ -241,3 +241,11 @@ textarea,
 select {
   font-size: var(--font-size-input-label);
 }
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
