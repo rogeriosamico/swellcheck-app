@@ -628,15 +628,23 @@ const HeaderSection = () => (
   <div style={{ maxWidth: 400 }}>
     <SectionTitle>Header</SectionTitle>
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-      Duas variantes: <strong>default</strong> exibe só o nome do app; <strong>beach</strong> tem botão back à esquerda, nome da praia centralizado e botão share (ou espaçador de simetria) à direita. Botões de ícone usam <code style={{ fontFamily: 'monospace' }}>h-[var(--touch-target)] w-[var(--touch-target)]</code> (44px). O espaçador mantém o título centralizado quando <code style={{ fontFamily: 'monospace' }}>showShare=false</code>.
+      Três variantes: <strong>default</strong> exibe só o nome do app; <strong>location</strong> exibe cidade/estado acima do nome do app quando o usuário permite geolocalização; <strong>beach</strong> tem botão back à esquerda, nome da praia centralizado e botão share (ou espaçador de simetria) à direita. Botões de ícone usam <code style={{ fontFamily: 'monospace' }}>h-[var(--touch-target)] w-[var(--touch-target)]</code> (44px). O espaçador mantém o título centralizado quando <code style={{ fontFamily: 'monospace' }}>showShare=false</code>.
     </p>
 
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
       <div>
-        <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>default — Home</p>
+        <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>default — Home (sem localização)</p>
         <div style={{ border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-minimal)', overflow: 'hidden' }}>
           <Header variant="default" />
         </div>
+      </div>
+
+      <div>
+        <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>location — Home (com localização ativa)</p>
+        <div style={{ border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-minimal)', overflow: 'hidden', marginBottom: 12 }}>
+          <Header variant="location" locationLabel="Recife, PE" />
+        </div>
+        <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Passando locationLabel="Recife, PE" — exibido quando geolocalização é concedida</p>
       </div>
 
       <div>

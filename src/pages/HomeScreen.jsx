@@ -11,36 +11,45 @@ import { BEACHES, BEACHES_META, CONDITIONS, COND_DESCS, COND_ORDER } from "@/lib
 import { fetchForecastAll } from "@/lib/api";
 import { getToday, parseDateLabel } from "@/lib/dates";
 import { getCachedList, saveCachedList } from "@/lib/listCache";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { haversineKm } from "@/lib/geo";
 
 export default function HomeScreen() {
   const navigate = useNavigate();
   const currentHour = new Date().getHours();
   const todayIso = getToday();
+  const { status: geoStatus, coords, cityLabel } = useGeolocation();
 
   const [query, setQuery] = useState("");
-  const [selectedDay, setSelectedDay] = useState(todayIso);
-  const [goodBeaches, setGoodBeaches] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const saved = sessionStorage.getItem("selected_day");
+    return saved && saved >= todayIso ? saved : todayIso;
+  });
+  const [rawBeaches, setRawBeaches] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    sessionStorage.setItem("selected_day", selectedDay);
+  }, [selectedDay]);
+
+  useEffect(() => {
     const controller = new AbortController();
-    const sort = (list) => [...list].sort((a, b) => (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99));
 
     const cached = getCachedList(selectedDay);
     if (cached) {
-      setGoodBeaches(sort(cached));
+      setRawBeaches(cached);
       setListLoading(false);
     } else {
       setListLoading(true);
-      setGoodBeaches([]);
+      setRawBeaches([]);
     }
     setError(false);
 
     fetchForecastAll(selectedDay, controller.signal)
       .then(({ beaches, total, loaded }) => {
-        setGoodBeaches(sort(beaches));
+        setRawBeaches(beaches);
         setListLoading(false);
         if (loaded === total) saveCachedList(selectedDay, beaches);
       })
@@ -53,9 +62,20 @@ export default function HomeScreen() {
     return () => controller.abort();
   }, [selectedDay, retryCount]);
 
+  const sortedBeaches = [...rawBeaches].sort((a, b) => {
+    if (coords) {
+      const ma = BEACHES_META[a.beach], mb = BEACHES_META[b.beach];
+      const distDiff =
+        haversineKm(coords.lat, coords.lng, ma.lat, ma.lng) -
+        haversineKm(coords.lat, coords.lng, mb.lat, mb.lng);
+      if (distDiff !== 0) return distDiff;
+    }
+    return (COND_ORDER[a.cond] ?? 99) - (COND_ORDER[b.cond] ?? 99);
+  });
+
   const filtered = query.trim()
-    ? goodBeaches.filter(b => b.beach.toLowerCase().includes(query.trim().toLowerCase()))
-    : goodBeaches;
+    ? sortedBeaches.filter(b => b.beach.toLowerCase().includes(query.trim().toLowerCase()))
+    : sortedBeaches;
 
   const goToBeach = (beachName) => {
     const slug = BEACHES_META[beachName]?.slug;
@@ -66,7 +86,10 @@ export default function HomeScreen() {
 
   return (
     <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "40px 16px 80px" }}>
-      <Header variant="default" />
+      <Header
+        variant={geoStatus === "granted" ? "location" : "default"}
+        locationLabel={cityLabel}
+      />
 
       <div style={{ marginBottom: "var(--spacing-lg)" }}>
         <div style={{ display: "flex", gap: "var(--spacing-sm)", marginBottom: 10 }}>
@@ -112,9 +135,9 @@ export default function HomeScreen() {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-sm)" }}>
-        {listLoading && goodBeaches.length === 0
+        {listLoading && rawBeaches.length === 0
           ? BEACHES.map((_, i) => <HomeCardSkeleton key={i} />)
-          : error && goodBeaches.length === 0
+          : error && rawBeaches.length === 0
             ? (
               <div style={{ textAlign: "center", padding: "40px 0" }}>
                 <div style={{ fontSize: "var(--font-size-body)", color: "var(--text-secondary)", marginBottom: 16 }}>Não foi possível carregar as praias.</div>
