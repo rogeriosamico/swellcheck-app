@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "asana": {
+      "type": "url",
+      "url": "https://mcp.asana.com/v2/mcp"
+    }
+  }
+}
