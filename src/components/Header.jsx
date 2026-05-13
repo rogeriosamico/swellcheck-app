@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { ChevronLeft, Share, MapPin, Heart, MoreVertical, LogOut } from 'lucide-react';
+import { ChevronLeft, Share, MapPin, Heart, Menu as MenuIcon, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,10 +47,10 @@ const Header = ({
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)]"
+          className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] [&_svg]:!size-[22px]"
           aria-label="Menu"
         >
-          <MoreVertical size={18} />
+          <MenuIcon size={22} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -71,11 +71,11 @@ const Header = ({
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0"
+            className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0 [&_svg]:!size-[22px]"
             onClick={onBack}
             aria-label="Voltar"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={22} />
           </Button>
 
           <div className="flex items-center gap-1 flex-1 min-w-0 justify-center">
@@ -89,12 +89,12 @@ const Header = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0"
+                className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0 [&_svg]:!size-[22px]"
                 onClick={onFavorite}
                 aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
               >
                 <Heart
-                  size={18}
+                  size={22}
                   fill={isFavorited ? 'currentColor' : 'none'}
                   className={isFavorited ? 'text-[var(--text-storm)]' : 'text-[var(--text-primary)]'}
                 />
