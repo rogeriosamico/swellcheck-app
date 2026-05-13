@@ -8,10 +8,12 @@ export async function signIn(email, password) {
   return supabase.auth.signInWithPassword({ email, password });
 }
 
+const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+
 export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: APP_URL },
   });
 }
 
@@ -21,7 +23,7 @@ export async function signOut() {
 
 export async function resetPassword(email) {
   return supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${APP_URL}/reset-password`,
   });
 }
 
