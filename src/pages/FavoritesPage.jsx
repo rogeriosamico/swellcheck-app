@@ -38,7 +38,7 @@ export default function FavoritesPage() {
       <Header
         variant="beach"
         title="Favoritos"
-        onBack={() => navigate("/")}
+        onBack={() => navigate(-1)}
       />
 
       <div style={{ padding: "16px 16px 0" }}>
