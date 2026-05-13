@@ -89,6 +89,7 @@ export default function HomeScreen() {
       <Header
         variant={geoStatus === "granted" ? "location" : "default"}
         locationLabel={cityLabel}
+        onFavorites={() => navigate("/favoritos")}
       />
 
       <div style={{ marginBottom: "var(--spacing-lg)" }}>

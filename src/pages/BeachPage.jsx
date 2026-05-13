@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check } from "lucide-react";
+import { useFavorites } from "@/hooks/useFavorites";
 import Header from "@/components/Header";
 import { BeachDetailSkeleton } from "@/components/Skeleton";
 import TideChart from "@/components/TideChart";
@@ -28,6 +29,7 @@ export default function BeachPage() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const beach = SLUG_TO_BEACH[slug];
   const todayIso = getToday();
@@ -52,6 +54,7 @@ export default function BeachPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrubHour, setScrubHour] = useState(currentHour);
+  const { favorites, toggle } = useFavorites({ onUnauthenticated: () => navigate("/login", { state: { from: location } }) });
   const [shareOpen, setShareOpen] = useState(false);
   const [copyConfirmed, setCopyConfirmed] = useState(false);
   const shareScrollRef = useRef(null);
@@ -124,7 +127,10 @@ export default function BeachPage() {
         variant="beach"
         title={beach}
         onBack={() => navigate("/")}
-        showShare={true}
+        showFavorite
+        isFavorited={favorites.has(beach)}
+        onFavorite={() => toggle(beach)}
+        onFavorites={() => navigate("/favoritos")}
         onShare={() => setShareOpen(true)}
       />
 

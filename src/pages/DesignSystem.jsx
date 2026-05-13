@@ -2,8 +2,13 @@ import React, { useState, useRef } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import BeachCard from "@/components/BeachCard";
-import { Search, Heart, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
@@ -62,6 +67,18 @@ const DesignSystem = () => {
         { id: 'calendar', label: 'Calendário' },
         { id: 'swellpower', label: 'Swell Power Bar' },
         { id: 'tidechart', label: 'Tide Chart' },
+        { id: 'dropdown', label: 'Dropdown Menu' },
+      ]
+    },
+    {
+      id: 'auth',
+      label: 'Auth Pages',
+      icon: ComponentIcon,
+      subItems: [
+        { id: 'auth-login', label: 'Login' },
+        { id: 'auth-register', label: 'Cadastro' },
+        { id: 'auth-forgot', label: 'Esqueci a senha' },
+        { id: 'auth-reset', label: 'Nova senha' },
       ]
     }
   ];
@@ -85,6 +102,13 @@ const DesignSystem = () => {
       if (activeSubTab === 'calendar') return <CalendarSection />;
       if (activeSubTab === 'swellpower') return <SwellPowerSection />;
       if (activeSubTab === 'tidechart') return <TideChartSection />;
+      if (activeSubTab === 'dropdown') return <DropdownMenuSection />;
+    }
+    if (activeTab === 'auth') {
+      if (activeSubTab === 'auth-login') return <AuthPagePreview title="Login"><LoginPage /></AuthPagePreview>;
+      if (activeSubTab === 'auth-register') return <AuthPagePreview title="Cadastro"><RegisterPage /></AuthPagePreview>;
+      if (activeSubTab === 'auth-forgot') return <AuthPagePreview title="Esqueci a senha"><ForgotPasswordPage /></AuthPagePreview>;
+      if (activeSubTab === 'auth-reset') return <AuthPagePreview title="Nova senha"><ResetPasswordPage /></AuthPagePreview>;
     }
     return <ColorsSection />;
   };
@@ -876,8 +900,59 @@ const TideChartSection = () => (
 );
 
 /* =========================================
+   AUTH PAGES PREVIEW
+   ========================================= */
+
+const AuthPagePreview = ({ title, children }) => (
+  <div>
+    <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+      Página de auth renderizada em contexto isolado. Navegação e submissão de formulário não funcionam aqui — use o app para testar.
+    </p>
+    <div style={{
+      border: '1px solid var(--border-primary)',
+      borderRadius: 'var(--radius-rounded)',
+      overflow: 'hidden',
+      maxWidth: 480,
+    }}>
+      {children}
+    </div>
+  </div>
+);
+
+/* =========================================
    SHARED
    ========================================= */
+
+const DropdownMenuSection = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
+    <div>
+      <SectionTitle>Dropdown Menu</SectionTitle>
+      <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+        Menu contextual usado no Header — hamburguer com ações de navegação. Construído com <code style={{ fontFamily: 'monospace' }}>@radix-ui/react-dropdown-menu</code>.
+      </p>
+      <div style={{ display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
+        <div>
+          <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>Com ícones</p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Abrir menu</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem>
+                <Heart size={16} />
+                Ver favoritos
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Share size={16} />
+                Compartilhar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const SectionTitle = ({ children, style: extraStyle }) => (
   <p style={{
