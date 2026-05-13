@@ -71,22 +71,25 @@ const Header = ({
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)]"
+            className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0"
             onClick={onBack}
             aria-label="Voltar"
           >
             <ChevronLeft size={18} />
           </Button>
 
-          <div className="flex items-center gap-1">
-            <h1 className="text-token-title text-[var(--text-primary)] whitespace-nowrap leading-normal">
+          <div className="flex items-center gap-1 flex-1 min-w-0 justify-center">
+            <h1
+              className="text-token-title text-[var(--text-primary)] whitespace-nowrap leading-normal overflow-hidden text-ellipsis"
+              title={title}
+            >
               {title || 'Nome da Praia'}
             </h1>
             {showFavorite && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)]"
+                className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0"
                 onClick={onFavorite}
                 aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
               >
