@@ -96,7 +96,7 @@ const Header = ({
                 <Heart
                   size={22}
                   fill={isFavorited ? 'currentColor' : 'none'}
-                  className={isFavorited ? 'text-[var(--text-storm)]' : 'text-[var(--text-primary)]'}
+                  className="text-[var(--text-primary)]"
                 />
               </Button>
             )}
