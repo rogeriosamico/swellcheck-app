@@ -25,7 +25,7 @@ export const BEACHES_META = {
   "Praia do Forte":        { state: "BA", country: "Brasil", slug: "praia-do-forte",         lat: -12.5778, lng: -37.9742 },
   "Prado - Corumbau":      { state: "BA", country: "Brasil", slug: "prado-corumbau",         lat: -17.3428, lng: -39.2178 },
   "Serrambi":              { state: "PE", country: "Brasil", slug: "serrambi",               lat: -8.7822,  lng: -35.0386 },
-  "Praia da Conceição":    { state: "PE", country: "Brasil", slug: "praia-da-conceicao",     lat: -7.8711,  lng: -34.8483 },
+  "Praia da Conceição":    { state: "PE", country: "Brasil", slug: "praia-da-conceicao",     lat: -3.8553,  lng: -32.4103 },
   "Praia do Amor":         { state: "RN", country: "Brasil", slug: "praia-do-amor",          lat: -6.1886,  lng: -35.0878 },
   "São Miguel do Gostoso": { state: "RN", country: "Brasil", slug: "sao-miguel-do-gostoso",  lat: -5.1236,  lng: -35.6411 },
   "Intermares":            { state: "PB", country: "Brasil", slug: "intermares",             lat: -6.9786,  lng: -34.8261 },
