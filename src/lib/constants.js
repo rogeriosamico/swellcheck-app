@@ -10,6 +10,9 @@ export const BEACHES_META = {
   "Tourinhos":          { state: "RN", country: "Brasil", slug: "tourinhos",         lat: -5.1089,  lng: -35.4908 },
   "Janga":              { state: "PE", country: "Brasil", slug: "janga",             lat: -7.9508,  lng: -34.8267 },
   "Olinda":             { state: "PE", country: "Brasil", slug: "olinda",            lat: -7.9908,  lng: -34.8416 },
+  "Ponta Negra":        { state: "RN", country: "Brasil", slug: "ponta-negra",       lat: -5.8906,  lng: -35.1778 },
+  "Praia do Francês":   { state: "AL", country: "Brasil", slug: "praia-do-frances",  lat: -9.6617,  lng: -35.8406 },
+  "Japaratinga":        { state: "AL", country: "Brasil", slug: "japaratinga",       lat: -9.0839,  lng: -35.2489 },
 };
 
 export const SLUG_TO_BEACH = Object.fromEntries(
