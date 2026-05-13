@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import Header from "@/components/Header";
 import { BeachDetailSkeleton } from "@/components/Skeleton";
@@ -57,6 +57,7 @@ export default function BeachPage() {
   const { favorites, toggle } = useFavorites({ onUnauthenticated: () => navigate("/login", { state: { from: location } }) });
   const [shareOpen, setShareOpen] = useState(false);
   const [copyConfirmed, setCopyConfirmed] = useState(false);
+  const [igCopied, setIgCopied] = useState(false);
   const shareScrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -110,6 +111,21 @@ export default function BeachPage() {
   const condColor = dayCond ? CONDITIONS[dayCond]?.color : "var(--text-secondary)";
 
   const shareUrl = window.location.href;
+
+  const handleInstagramShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Swell Check', url: shareUrl });
+        return;
+      } catch { /* usuário cancelou ou share falhou */ }
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setIgCopied(true);
+      setTimeout(() => setIgCopied(false), 2000);
+    } catch { /* clipboard indisponível */ }
+    window.open('https://www.instagram.com', '_blank', 'noopener,noreferrer');
+  };
 
   const handleCopyLink = async () => {
     try {
@@ -266,17 +282,25 @@ export default function BeachPage() {
               className="flex gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0"
             >
               {[
-                { label: 'WhatsApp', icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
-                { label: 'Telegram', icon: <Send size={16} />, href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`, target: '_blank' },
-                { label: 'E-mail', icon: <Mail size={16} />, href: `mailto:?subject=${encodeURIComponent(`Swell Check — ${beach}`)}&body=${encodeURIComponent(shareUrl)}`, target: undefined },
-                { label: 'Facebook', icon: <ExternalLink size={16} />, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, target: '_blank' },
-                { label: 'X', icon: <ExternalLink size={16} />, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
-              ].map(({ label, icon, href, target }) => (
-                <a key={label} href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="shrink-0">
-                  <Button variant="outline" className="h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
-                    {icon}{label}
-                  </Button>
-                </a>
+                { id: 'whatsapp',   label: 'WhatsApp',                       icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { id: 'instagram',  label: igCopied ? 'Link copiado!' : 'Instagram', icon: <Camera size={16} />, onClick: handleInstagramShare },
+                { id: 'telegram',   label: 'Telegram',                       icon: <Send size={16} />,           href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { id: 'email',      label: 'E-mail',                         icon: <Mail size={16} />,           href: `mailto:?subject=${encodeURIComponent(`Swell Check — ${beach}`)}&body=${encodeURIComponent(shareUrl)}`, target: undefined },
+                { id: 'facebook',   label: 'Facebook',                       icon: <ExternalLink size={16} />,   href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+                { id: 'x',          label: 'X',                              icon: <ExternalLink size={16} />,   href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
+              ].map(({ id, label, icon, href, target, onClick }) => (
+                href
+                  ? (
+                    <a key={id} href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="shrink-0">
+                      <Button variant="outline" className="h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                        {icon}{label}
+                      </Button>
+                    </a>
+                  ) : (
+                    <Button key={id} variant="outline" onClick={onClick} className="shrink-0 h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                      {icon}{label}
+                    </Button>
+                  )
               ))}
             </div>
             {canScrollRight && (
