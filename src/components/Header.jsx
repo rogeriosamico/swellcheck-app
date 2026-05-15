@@ -17,9 +17,6 @@ const Header = ({
   title,
   locationLabel,
   // beach variant
-  showFavorite = false,
-  isFavorited = false,
-  onFavorite,
   onShare,
   // shared
   onBack,
@@ -85,21 +82,6 @@ const Header = ({
             >
               {title || 'Nome da Praia'}
             </h1>
-            {showFavorite && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-[var(--touch-target)] w-[var(--touch-target)] shrink-0 [&_svg]:!size-[22px]"
-                onClick={onFavorite}
-                aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-              >
-                <Heart
-                  size={22}
-                  fill={isFavorited ? 'currentColor' : 'none'}
-                  className="text-[var(--text-primary)]"
-                />
-              </Button>
-            )}
           </div>
 
           <Menu />

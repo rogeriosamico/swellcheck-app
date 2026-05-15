@@ -1,6 +1,7 @@
 const PT_DAYS_FULL  = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 const PT_DAYS_SHORT = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-const PT_MONTHS     = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const PT_MONTHS       = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const PT_MONTHS_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 function isoDate(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -37,7 +38,7 @@ export function parseDateLabel(iso) {
 export function shortDateLabel(iso) {
   if (iso === getToday()) return "Hoje";
   const d = new Date(iso + "T12:00:00");
-  return `${PT_DAYS_SHORT[d.getDay()]}, ${d.getDate()} de ${PT_MONTHS[d.getMonth()]}`;
+  return `${PT_DAYS_SHORT[d.getDay()]}, ${d.getDate()}/${PT_MONTHS_SHORT[d.getMonth()]}`;
 }
 
 export function fmtHr(hr) {

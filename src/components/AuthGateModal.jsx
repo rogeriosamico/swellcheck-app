@@ -17,7 +17,7 @@ export default function AuthGateModal({ open, onClose, onConfirm, title, descrip
         </DialogHeader>
         <Button
           onClick={onConfirm}
-          className="w-full h-12 rounded-[var(--radius-rounded)]"
+          className="w-full h-12"
         >
           {ctaLabel}
         </Button>

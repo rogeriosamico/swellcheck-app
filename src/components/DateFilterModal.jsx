@@ -110,13 +110,13 @@ export default function DateFilterModal({ initialDate, onApply, trigger }) {
           <Button 
             variant="outline" 
             onClick={() => setOpen(false)}
-            className="flex-1 h-12 rounded-[var(--radius-rounded)]"
+            className="flex-1 h-12"
           >
             Cancelar
           </Button>
           <Button 
             onClick={handleApply}
-            className="flex-1 h-12 rounded-[var(--radius-rounded)]"
+            className="flex-1 h-12"
           >
             Aplicar
           </Button>

@@ -116,13 +116,15 @@ export default function HomeScreen() {
               style={{ borderRadius: "var(--radius-minimal)" }}
             />
             {query && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setQuery("")}
                 aria-label="Limpar busca"
-                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: "var(--font-size-headline)", lineHeight: 1, padding: 4 }}
+                style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)" }}
               >
                 ×
-              </button>
+              </Button>
             )}
           </div>
 

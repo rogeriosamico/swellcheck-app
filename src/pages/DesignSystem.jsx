@@ -635,16 +635,16 @@ const SwellPowerSection = () => (
   <div style={{ maxWidth: 400 }}>
     <SectionTitle>Swell Power Bar</SectionTitle>
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-      Barra de 5 segmentos que indica energia do swell em Kj. A cor dos segmentos ativos segue a condição: 1 → flat, 2 → marola, 3–4 → bom, 5 → storm. Segmentos inativos usam <code style={{ fontFamily: 'monospace' }}>--surface-terciary</code>. O label "Força do swell" é fixo e não parametrizado.
+      Barra de 5 segmentos que indica energia do swell em Kj. A cor dos segmentos ativos segue a condição: 1 → flat, 2 → marola, 3–4 → bom, 5 → storm. Segmentos inativos usam <code style={{ fontFamily: 'monospace' }}>--surface-terciary</code>. O label "Força do swell" é fixo; o valor em Kj é exibido à direita.
     </p>
 
     {/* Todos os estados */}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <SwellPowerBar value={1} label="120 kj" sublabel="Fraco" />
-      <SwellPowerBar value={2} label="600 kj" sublabel="Médio" />
-      <SwellPowerBar value={3} label="1,440 kj" sublabel="Bom" />
-      <SwellPowerBar value={4} label="2,300 kj" sublabel="Forte" />
-      <SwellPowerBar value={5} label="4,800 kj" sublabel="Muito forte" />
+      <SwellPowerBar value={1} label="120 Kj" />
+      <SwellPowerBar value={2} label="600 Kj" />
+      <SwellPowerBar value={3} label="1.440 Kj" />
+      <SwellPowerBar value={4} label="2.300 Kj" />
+      <SwellPowerBar value={5} label="4.800 Kj" />
     </div>
   </div>
 );

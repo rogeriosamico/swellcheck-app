@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera, Heart } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { SLUG_TO_BEACH, CONDITIONS, SW_LABELS } from "@/lib/constants";
+import { SLUG_TO_BEACH, CONDITIONS } from "@/lib/constants";
 import { fetchForecast, fetchTide } from "@/lib/api";
 import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr } from "@/lib/dates";
 import { swellSegs } from "@/lib/swell";
@@ -192,9 +192,6 @@ export default function BeachPage() {
         variant="beach"
         title={beach}
         onBack={() => navigate("/")}
-        showFavorite
-        isFavorited={favorites.has(beach)}
-        onFavorite={() => toggle(beach)}
         onFavorites={handleFavoritesAccess}
         onShare={() => setShareOpen(true)}
       />
@@ -226,13 +223,14 @@ export default function BeachPage() {
               initialDate={pageDay}
               onApply={day => setPageDay(day)}
               trigger={
-                <button
+                <Button
+                  variant="outline"
                   aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
-                  className="text-button font-token-bold flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)] rounded-[var(--radius-minimal)] border-[1.5px] border-[var(--border-primary)] bg-[var(--surface-primary)] text-[var(--text-primary)] whitespace-nowrap h-[var(--touch-target)]"
+                  className="text-button font-token-bold gap-[var(--spacing-sm)] px-[var(--spacing-md)] border-[1.5px] border-[var(--border-primary)] bg-[var(--surface-primary)] text-[var(--text-primary)] whitespace-nowrap h-[var(--touch-target)]"
                 >
                   <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80" />
                   {shortDateLabel(pageDay)}
-                </button>
+                </Button>
               }
             />
 
@@ -283,7 +281,6 @@ export default function BeachPage() {
             <SwellPowerBar
               value={swellSegs(hourData.swellKj)}
               label={`${hourData.swellKj} Kj`}
-              sublabel={SW_LABELS[swellSegs(hourData.swellKj) - 1]}
             />
 
             {tideError ? (
@@ -307,6 +304,20 @@ export default function BeachPage() {
         ) : null}
       </div>
 
+      <div style={{ padding: "24px 16px 0" }}>
+        <Button
+          className="w-full h-12 rounded-[var(--radius-minimal)] gap-2"
+          onClick={() => toggle(beach)}
+          aria-label={favorites.has(beach) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        >
+          <Heart
+            size={18}
+            fill={favorites.has(beach) ? 'currentColor' : 'none'}
+          />
+          {favorites.has(beach) ? 'Praia favoritada' : 'Favoritar praia'}
+        </Button>
+      </div>
+
       <AuthGateModal
         open={authGateOpen}
         onClose={handleAuthGateClose}
@@ -327,12 +338,14 @@ export default function BeachPage() {
 
           <div className="relative flex items-center mb-6 min-w-0">
             {canScrollLeft && (
-              <button
+              <Button
+                variant="outline"
+                size="icon"
                 onClick={() => shareScrollRef.current?.scrollBy({ left: -140, behavior: 'smooth' })}
-                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+                className="shrink-0 rounded-full"
               >
                 <ChevronLeft size={16} />
-              </button>
+              </Button>
             )}
             <div
               ref={(el) => { shareScrollRef.current = el; if (el) checkShareScroll(); }}
@@ -350,24 +363,26 @@ export default function BeachPage() {
                 href
                   ? (
                     <a key={id} href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="shrink-0">
-                      <Button variant="outline" className="h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                      <Button variant="outline" className="h-[var(--touch-target)] gap-2 whitespace-nowrap">
                         {icon}{label}
                       </Button>
                     </a>
                   ) : (
-                    <Button key={id} variant="outline" onClick={onClick} className="shrink-0 h-[var(--touch-target)] rounded-[var(--radius-rounded)] gap-2 whitespace-nowrap">
+                    <Button key={id} variant="outline" onClick={onClick} className="shrink-0 h-[var(--touch-target)] gap-2 whitespace-nowrap">
                       {icon}{label}
                     </Button>
                   )
               ))}
             </div>
             {canScrollRight && (
-              <button
+              <Button
+                variant="outline"
+                size="icon"
                 onClick={() => shareScrollRef.current?.scrollBy({ left: 140, behavior: 'smooth' })}
-                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--surface-primary)] hover:bg-[var(--surface-terciary)] transition-colors"
+                className="shrink-0 rounded-full"
               >
                 <ChevronRight size={16} />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -381,7 +396,7 @@ export default function BeachPage() {
           />
           <Button
             onClick={handleCopyLink}
-            className="w-full h-12 rounded-[var(--radius-rounded)] gap-2"
+            className="w-full h-12 gap-2"
           >
             {copyConfirmed ? <><Check size={16} /> Copiado!</> : "Copiar link"}
           </Button>

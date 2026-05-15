@@ -62,7 +62,7 @@ export function BeachDetailSkeleton() {
       <div style={{ background: "var(--surface-terciary)", borderRadius: "var(--radius-minimal)", padding: "11px 12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
           <SkeletonPulse width={80} height={10} />
-          <SkeletonPulse width={60} height={12} />
+          <SkeletonPulse width={44} height={10} />
         </div>
         <div style={{ display: "flex", gap: "var(--spacing-xs)" }}>
           {[0, 1, 2, 3, 4].map(i => <SkeletonPulse key={i} height={6} borderRadius={4} style={{ flex: 1 }} />)}
