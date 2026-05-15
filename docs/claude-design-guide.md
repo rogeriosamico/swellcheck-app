@@ -120,6 +120,20 @@ Duas variantes. Sempre em `src/components/Header.jsx`.
 - Com `showShare={false}` (default), um espaçador mantém o título centralizado
 - Fundo: `var(--surface-primary)`
 
+#### Menu dropdown (auth-aware)
+
+O menu é dinâmico e muda conforme o estado de autenticação e as props recebidas:
+
+| Ordem | Item | Ícone | Condição de exibição |
+|---|---|---|---|
+| 1º | Entrar | LogIn 16px | usuário **deslogado** — navega para `/login` |
+| 2º | Ver favoritos | Heart 16px | `onFavorites` prop presente |
+| 3º | Compartilhar | Share 16px | `onShare` prop presente |
+| último | Sair | LogOut 16px | usuário **logado** — executa signOut |
+
+- "Entrar" e "Sair" são mutuamente exclusivos
+- O estado de autenticação vem de `useAuth()` do `AuthContext`
+
 ---
 
 ### BeachCard

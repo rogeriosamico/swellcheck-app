@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { ChevronLeft, Share, MapPin, Heart, Menu as MenuIcon, LogOut } from 'lucide-react';
+import { ChevronLeft, Share, MapPin, Heart, Menu as MenuIcon, LogOut, LogIn } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,10 +29,10 @@ const Header = ({
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/login');
   };
 
   const menuItems = [
+    ...(!user ? [{ label: 'Entrar', icon: <LogIn size={16} />, onClick: () => navigate('/login') }] : []),
     ...(onFavorites ? [{ label: 'Ver favoritos', icon: <Heart size={16} />, onClick: onFavorites }] : []),
     ...(onShare ? [{ label: 'Compartilhar', icon: <Share size={16} />, onClick: onShare }] : []),
     ...(user ? [{ label: 'Sair', icon: <LogOut size={16} />, onClick: handleLogout }] : []),
