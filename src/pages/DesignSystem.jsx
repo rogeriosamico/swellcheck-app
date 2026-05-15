@@ -8,7 +8,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import BeachCard from "@/components/BeachCard";
-import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning, Menu, MapPin, LogOut, Camera, Info, X, Calendar as CalendarIcon } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
@@ -50,6 +50,7 @@ const DesignSystem = () => {
         { id: 'tipografia', label: 'Tipografia' },
         { id: 'espacamento', label: 'Espaçamento' },
         { id: 'radius', label: 'Radius' },
+        { id: 'icones', label: 'Ícones' },
       ]
     },
     {
@@ -90,6 +91,7 @@ const DesignSystem = () => {
       if (activeSubTab === 'tipografia') return <TypographySection />;
       if (activeSubTab === 'espacamento') return <SpacingSection />;
       if (activeSubTab === 'radius') return <RadiusSection />;
+      if (activeSubTab === 'icones') return <IconesSection />;
     }
     if (activeTab === 'componentes') {
       if (activeSubTab === 'badges') return <BadgesSection />;
@@ -617,16 +619,145 @@ const SliderSection = () => {
   );
 };
 
+const IconGroup = ({ title, description, icons }) => (
+  <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+    <p className="text-token-headline font-token-bold text-[var(--text-primary)]" style={{ marginBottom: 'var(--spacing-xs)' }}>{title}</p>
+    {description && (
+      <p className="text-token-body text-[var(--text-secondary)]" style={{ marginBottom: 'var(--spacing-md)' }}>{description}</p>
+    )}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+      {icons.map(({ icon: Icon, name, usage }) => (
+        <div
+          key={name}
+          className="bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-[var(--radius-minimal)]"
+          style={{ padding: 'var(--spacing-md)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Icon size={20} className="text-[var(--text-primary)]" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const IconesSection = () => (
+  <div>
+    <SectionTitle>Ícones</SectionTitle>
+    <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+      Biblioteca: <strong>lucide-react</strong>. Tamanho padrão: 20px em contexto de conteúdo, 18px dentro de grupos compostos, 22px em botões de navegação. Cor sempre via token — nunca hardcoded. Ícones nunca são decorativos: cada um tem função e contexto definidos.
+    </p>
+
+    <IconGroup
+      title="Navegação"
+      description="Usados em headers, paginação e controles de layout."
+      icons={[
+        { icon: ChevronLeft,    name: 'ChevronLeft',    usage: 'Voltar / dia anterior' },
+        { icon: ChevronRight,   name: 'ChevronRight',   usage: 'Avançar / próximo dia' },
+        { icon: Menu,           name: 'Menu',           usage: 'Abrir menu lateral (Header)' },
+        { icon: PanelLeft,      name: 'PanelLeft',      usage: 'Recolher sidebar (Design System)' },
+        { icon: PanelLeftClose, name: 'PanelLeftClose', usage: 'Expandir sidebar (Design System)' },
+      ]}
+    />
+
+    <IconGroup
+      title="Ações do usuário"
+      description="Ações primárias e secundárias disponíveis ao usuário."
+      icons={[
+        { icon: Heart,        name: 'Heart',        usage: 'Favoritar / desfavoritar praia' },
+        { icon: Share,        name: 'Share',        usage: 'Abrir modal de compartilhamento' },
+        { icon: Search,       name: 'Search',       usage: 'Campo de busca de praias' },
+        { icon: CalendarIcon, name: 'Calendar',     usage: 'Abrir seletor de data' },
+        { icon: Check,        name: 'Check',        usage: 'Confirmação de ação (ex: link copiado)' },
+        { icon: MapPin,       name: 'MapPin',       usage: 'Localização / geolocalização ativa' },
+        { icon: LogOut,       name: 'LogOut',       usage: 'Sair da conta (menu do Header)' },
+        { icon: X,            name: 'X',            usage: 'Fechar modal (shadcn/Dialog)' },
+      ]}
+    />
+
+    <IconGroup
+      title="Compartilhamento"
+      description="Ícones do modal de compartilhamento da BeachPage."
+      icons={[
+        { icon: MessageCircle, name: 'MessageCircle', usage: 'WhatsApp' },
+        { icon: Camera,        name: 'Camera',        usage: 'Instagram' },
+        { icon: Send,          name: 'Send',          usage: 'Telegram' },
+        { icon: Mail,          name: 'Mail',          usage: 'E-mail' },
+        { icon: ExternalLink,  name: 'ExternalLink',  usage: 'Facebook / X (Twitter)' },
+      ]}
+    />
+
+    <IconGroup
+      title="Dados do mar — InfoBlocks"
+      description="Ícones dinâmicos nos InfoBlocks da BeachPage. Variam conforme o dado da hora selecionada no slider."
+      icons={[
+        { icon: ArrowUp,   name: 'ArrowUp',   usage: 'Maré enchendo (tideLevel > prevTideLevel)' },
+        { icon: ArrowDown, name: 'ArrowDown', usage: 'Maré secando (tideLevel ≤ prevTideLevel)' },
+        { icon: Wind,      name: 'Wind',      usage: 'Velocidade do vento + direção cardinal (NE, SE…)' },
+        { icon: Timer,     name: 'Timer',     usage: 'Período do swell — estático, não varia' },
+      ]}
+    />
+
+    <IconGroup
+      title="Clima — InfoBlock"
+      description="Ícone de clima mapeado a partir do WMO weather code retornado pela Open-Meteo. Ausente quando weather code é null."
+      icons={[
+        { icon: Sun,            name: 'Sun',            usage: 'Céu limpo (code 0–2)' },
+        { icon: Cloud,          name: 'Cloud',          usage: 'Nublado / neblina (code 3–48)' },
+        { icon: CloudRain,      name: 'CloudRain',      usage: 'Chuva / garoa (code 49–82)' },
+        { icon: CloudLightning, name: 'CloudLightning', usage: 'Tempestade (code 83+)' },
+      ]}
+    />
+
+    <IconGroup
+      title="Interface"
+      description="Ícones de estado e informação."
+      icons={[
+        { icon: Info,   name: 'Info',   usage: 'Aviso de dado indisponível (tide error)' },
+        { icon: Palette, name: 'Palette', usage: 'Seção Fundamentos (Design System)' },
+        { icon: ComponentIcon, name: 'Component', usage: 'Seção Componentes / Auth (Design System)' },
+      ]}
+    />
+  </div>
+);
+
 const InfoBlockSection = () => (
   <div>
     <SectionTitle>Info Block</SectionTitle>
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-      Sempre em grupo de três na BeachPage, com labels fixos: <strong>Altura total</strong>, <strong>Vento</strong> e <strong>Período</strong>. O label aparece acima do valor — o usuário lê primeiro o que é, depois o número. Não inverter. Não adaptar para outros tipos de dado.
+      Sempre em grupo de quatro na BeachPage, dispostos em grid 2×2, com labels fixos: <strong>Altura maré</strong>, <strong>Vento</strong>, <strong>Período</strong> e <strong>Clima</strong>. O label aparece acima do valor — o usuário lê primeiro o que é, depois o número. Ícones são dinâmicos: maré (ArrowUp/Down), vento (Wind + direção), período (Timer fixo), clima (Sun/Cloud/CloudRain/CloudLightning). Prop <code>icon</code> é um React node opcional — sem ícone, o bloco continua funcional.
     </p>
-    <div style={{ display: 'flex', gap: 12, maxWidth: 400 }}>
-      <InfoBlock label="Altura total" value="2.5m" />
-      <InfoBlock label="Vento" value="45 km/h" />
-      <InfoBlock label="Período" value="8s" />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)', maxWidth: 380 }}>
+      <InfoBlock
+        label="Altura maré"
+        value="2.5m"
+        icon={<ArrowUp size={20} />}
+      />
+      <InfoBlock
+        label="Vento"
+        value="45 km/h"
+        icon={
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Wind size={18} />
+            <span className="text-token-subtitle-bold">NE</span>
+          </span>
+        }
+      />
+      <InfoBlock
+        label="Período"
+        value="8s"
+        icon={<Timer size={20} />}
+      />
+      <InfoBlock
+        label="Clima"
+        value="24°C"
+        icon={<Sun size={20} />}
+      />
+    </div>
+    <p style={{ fontSize: 'var(--font-size-subtitle)', color: 'var(--text-secondary)', marginTop: 'var(--spacing-sm)' }}>
+      Variante sem ícone (retrocompatível):
+    </p>
+    <div style={{ display: 'flex', gap: 'var(--spacing-sm)', maxWidth: 380, marginTop: 'var(--spacing-xs)' }}>
+      <InfoBlock label="Altura maré" value="—" />
+      <InfoBlock label="Clima" value="—" icon={<Cloud size={20} />} />
     </div>
   </div>
 );

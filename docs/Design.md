@@ -74,6 +74,19 @@ O veredito do dia é o elemento de maior peso visual em qualquer tela. InfoBlock
 
 Cada componente tem um escopo de uso definido. Não adaptar componentes de domínio para finalidades genéricas. Props, variantes, estados e exemplos vivem no **Storybook**.
 
+### InfoBlock
+
+Exibe um par label/valor com ícone opcional. Usado exclusivamente em grupo de quatro na BeachPage, dispostos em grid 2×2.
+
+**Prop `icon`** — React node opcional. Renderizado no canto superior direito do bloco. Usar exclusivamente ícones de `lucide-react` em tamanho 18–20px com cor `var(--text-primary)`. Ícones podem incluir texto adjacente (ex.: direção do vento). O ícone de Período é o único estático; todos os outros variam dinamicamente com o dado:
+
+| Bloco | Ícone | Comportamento |
+|---|---|---|
+| Altura maré | `ArrowUp` / `ArrowDown` | Indica se a maré está enchendo ou secando na hora selecionada |
+| Vento | `Wind` + label de direção (ex.: NE, SE) | Direção cardinal do vento na hora selecionada |
+| Período | `Timer` | Estático — não muda |
+| Clima | `Sun` / `Cloud` / `CloudRain` / `CloudLightning` | Derivado do WMO weather code da Open-Meteo |
+
 
 ---
 

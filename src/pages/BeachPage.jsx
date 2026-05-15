@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera, Heart, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -26,6 +26,14 @@ import { fetchForecast, fetchTide } from "@/lib/api";
 import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr } from "@/lib/dates";
 import { swellSegs } from "@/lib/swell";
 import { parseTidePts, interpolateTideLevel } from "@/lib/tides";
+
+function weatherIcon(code) {
+  if (code == null)   return undefined;
+  if (code <= 2)      return <Sun size={20} />;
+  if (code <= 48)     return <Cloud size={20} />;
+  if (code <= 82)     return <CloudRain size={20} />;
+  return                     <CloudLightning size={20} />;
+}
 
 export default function BeachPage() {
   const { slug } = useParams();
@@ -151,6 +159,13 @@ export default function BeachPage() {
     () => tidePts.length > 0 ? interpolateTideLevel(tidePts, scrubHour) : null,
     [tidePts, scrubHour]
   );
+  const prevTideLevel = useMemo(
+    () => tidePts.length > 0 ? interpolateTideLevel(tidePts, Math.max(0, scrubHour - 0.5)) : null,
+    [tidePts, scrubHour]
+  );
+  const tideTrend = (tideLevel != null && prevTideLevel != null)
+    ? (tideLevel > prevTideLevel ? 'up' : 'down')
+    : null;
 
   if (!beach) return null;
 
@@ -272,10 +287,32 @@ export default function BeachPage() {
 
             </div>
 
-            <div className="flex gap-4 mb-4">
-              <InfoBlock label="Altura maré" value={tideLevel != null ? `${tideLevel}m` : '—'} />
-              <InfoBlock label="Vento" value={`${hourData.windSpeed} km/h`} />
-              <InfoBlock label="Período" value={`${hourData.swellPeriod}s`} />
+            <div className="grid grid-cols-2 gap-[var(--spacing-sm)] mb-[var(--spacing-md)]">
+              <InfoBlock
+                label="Altura maré"
+                value={tideLevel != null ? `${tideLevel}m` : '—'}
+                icon={tideTrend ? (tideTrend === 'up' ? <ArrowUp size={20} /> : <ArrowDown size={20} />) : undefined}
+              />
+              <InfoBlock
+                label="Vento"
+                value={`${hourData.windSpeed} km/h`}
+                icon={
+                  <span className="flex items-center gap-1">
+                    <Wind size={18} />
+                    <span className="text-token-subtitle-bold">{hourData.windDir}</span>
+                  </span>
+                }
+              />
+              <InfoBlock
+                label="Período"
+                value={`${hourData.swellPeriod}s`}
+                icon={<Timer size={20} />}
+              />
+              <InfoBlock
+                label="Clima"
+                value={hourData.temperature != null ? `${hourData.temperature}°C` : '—'}
+                icon={weatherIcon(hourData.weatherCode)}
+              />
             </div>
 
             <SwellPowerBar
