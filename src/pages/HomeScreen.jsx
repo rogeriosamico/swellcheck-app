@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Calendar } from "lucide-react";
 import Header from "@/components/Header";
+import AuthGateModal from "@/components/AuthGateModal";
+import { useAuth } from "@/context/AuthContext";
 import { HomeCardSkeleton } from "@/components/Skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,8 @@ import { haversineKm } from "@/lib/geo";
 
 export default function HomeScreen() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [authGateOpen, setAuthGateOpen] = useState(false);
   const currentHour = new Date().getHours();
   const todayIso = getToday();
   const { status: geoStatus, coords, cityLabel } = useGeolocation();
@@ -89,7 +93,13 @@ export default function HomeScreen() {
       <Header
         variant={geoStatus === "granted" ? "location" : "default"}
         locationLabel={cityLabel}
-        onFavorites={() => navigate("/favoritos")}
+        onFavorites={() => {
+          if (user) {
+            navigate("/favoritos");
+          } else {
+            setAuthGateOpen(true);
+          }
+        }}
       />
 
       <div style={{ marginBottom: "var(--spacing-lg)" }}>
@@ -180,6 +190,18 @@ export default function HomeScreen() {
           ))}
         </div>
       </div>
+
+      <AuthGateModal
+        open={authGateOpen}
+        onClose={() => setAuthGateOpen(false)}
+        onConfirm={() => {
+          localStorage.setItem('authFrom', '/favoritos');
+          navigate("/login", { state: { from: { pathname: '/favoritos' } } });
+        }}
+        title="Entre ou crie sua conta"
+        description="É grátis. Guarde suas praias favoritas e acesse de qualquer lugar, quando quiser."
+        ctaLabel="Entrar ou cadastrar"
+      />
     </div>
   );
 }

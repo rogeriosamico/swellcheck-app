@@ -12,6 +12,7 @@ import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, P
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
+import AuthGateModal from "@/components/AuthGateModal";
 import {
   Dialog,
   DialogContent,
@@ -749,6 +750,11 @@ const ModalSection = () => {
 
       {/* 3. Modal de Compartilhamento */}
       <ShareModalDemo />
+
+      <div style={{ height: 1, background: 'var(--border-primary)', width: '100%' }} />
+
+      {/* 4. Auth Gate Modal */}
+      <AuthGateModalDemo />
     </div>
   );
 };
@@ -850,6 +856,32 @@ const ShareModalDemo = () => {
           </Button>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+const AuthGateModalDemo = () => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ maxWidth: 500 }}>
+      <SectionTitle>4. Auth Gate Modal</SectionTitle>
+      <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+        Intercepta ações que exigem autenticação. Aparece ao tentar favoritar sem estar logado.
+        Fecha via X, backdrop ou CTA. Copy dinâmico via props{' '}
+        <code style={{ fontFamily: 'monospace' }}>title</code>,{' '}
+        <code style={{ fontFamily: 'monospace' }}>description</code> e{' '}
+        <code style={{ fontFamily: 'monospace' }}>ctaLabel</code>{' '}
+        para reuso em futuras features que exijam autenticação.
+      </p>
+      <Button variant="outline" onClick={() => setOpen(true)}>Abrir Auth Gate Modal</Button>
+      <AuthGateModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onConfirm={() => setOpen(false)}
+        title="Entre ou crie sua conta"
+        description="É grátis. Guarde suas praias favoritas e acesse de qualquer lugar, quando quiser."
+        ctaLabel="Entrar ou cadastrar"
+      />
     </div>
   );
 };

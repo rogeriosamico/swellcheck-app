@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
+import AuthGateModal from "@/components/AuthGateModal";
 import { BeachDetailSkeleton } from "@/components/Skeleton";
 import TideChart from "@/components/TideChart";
 import TimeSlider from "@/components/TimeSlider";
@@ -54,7 +56,15 @@ export default function BeachPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrubHour, setScrubHour] = useState(currentHour);
-  const { favorites, toggle } = useFavorites({ onUnauthenticated: () => navigate("/login", { state: { from: location } }) });
+  const { user } = useAuth();
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [authGateIntent, setAuthGateIntent] = useState(null);
+  const { favorites, loading: favLoading, toggle } = useFavorites({
+    onUnauthenticated: () => {
+      setAuthGateIntent('favorite');
+      setAuthGateOpen(true);
+    }
+  });
   const [shareOpen, setShareOpen] = useState(false);
   const [copyConfirmed, setCopyConfirmed] = useState(false);
   const [igCopied, setIgCopied] = useState(false);
@@ -96,6 +106,45 @@ export default function BeachPage() {
       .then(tide => setTideData(tide))
       .catch(() => setTideError(true));
   }, [beach, pageDay, currentHour]);
+
+  useEffect(() => {
+    if (!user || favLoading) return;
+    const stored = localStorage.getItem('authIntent');
+    if (!stored) return;
+    try {
+      const intent = JSON.parse(stored);
+      if (intent.action === 'favorite' && intent.beachName === beach) {
+        localStorage.removeItem('authIntent');
+        toggle(intent.beachName);
+      }
+    } catch {
+      localStorage.removeItem('authIntent');
+    }
+  }, [user, favLoading])
+
+  const handleFavoritesAccess = () => {
+    if (user) {
+      navigate("/favoritos");
+    } else {
+      setAuthGateIntent('favoritos');
+      setAuthGateOpen(true);
+    }
+  }
+
+  const handleAuthGateConfirm = () => {
+    if (authGateIntent === 'favoritos') {
+      localStorage.setItem('authFrom', '/favoritos');
+    } else {
+      localStorage.setItem('authFrom', location.pathname + (location.search || ''));
+      localStorage.setItem('authIntent', JSON.stringify({ action: 'favorite', beachName: beach }));
+    }
+    navigate("/login", { state: { from: location } });
+  }
+
+  const handleAuthGateClose = () => {
+    setAuthGateOpen(false);
+    setAuthGateIntent(null);
+  }
 
   const tidePts = useMemo(() => parseTidePts(tideData?.tides), [tideData]);
   const tideLevel = useMemo(
@@ -146,7 +195,7 @@ export default function BeachPage() {
         showFavorite
         isFavorited={favorites.has(beach)}
         onFavorite={() => toggle(beach)}
-        onFavorites={() => navigate("/favoritos")}
+        onFavorites={handleFavoritesAccess}
         onShare={() => setShareOpen(true)}
       />
 
@@ -257,6 +306,15 @@ export default function BeachPage() {
           </div>
         ) : null}
       </div>
+
+      <AuthGateModal
+        open={authGateOpen}
+        onClose={handleAuthGateClose}
+        onConfirm={handleAuthGateConfirm}
+        title="Entre ou crie sua conta"
+        description="É grátis. Guarde suas praias favoritas e acesse de qualquer lugar, quando quiser."
+        ctaLabel="Entrar ou cadastrar"
+      />
 
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
         <DialogContent className="max-w-[380px] p-6 gap-0 overflow-hidden">
