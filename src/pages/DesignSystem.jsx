@@ -12,7 +12,7 @@ import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, P
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
-import AuthGateModal from "@/components/AuthGateModal";
+import { useAuth } from "@/context/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -992,27 +992,19 @@ const ShareModalDemo = () => {
 };
 
 const AuthGateModalDemo = () => {
-  const [open, setOpen] = useState(false);
+  const { openAuthModal } = useAuth();
   return (
     <div style={{ maxWidth: 500 }}>
-      <SectionTitle>4. Auth Gate Modal</SectionTitle>
+      <SectionTitle>4. Auth Modal</SectionTitle>
       <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-        Intercepta ações que exigem autenticação. Aparece ao tentar favoritar sem estar logado.
-        Fecha via X, backdrop ou CTA. Copy dinâmico via props{' '}
-        <code style={{ fontFamily: 'monospace' }}>title</code>,{' '}
-        <code style={{ fontFamily: 'monospace' }}>description</code> e{' '}
-        <code style={{ fontFamily: 'monospace' }}>ctaLabel</code>{' '}
-        para reuso em futuras features que exijam autenticação.
+        Modal global de autenticação com views de login, cadastro e recuperação de senha.
+        Controlado via <code style={{ fontFamily: 'monospace' }}>openAuthModal(view)</code> do AuthContext.
       </p>
-      <Button variant="outline" onClick={() => setOpen(true)}>Abrir Auth Gate Modal</Button>
-      <AuthGateModal
-        open={open}
-        onClose={() => setOpen(false)}
-        onConfirm={() => setOpen(false)}
-        title="Entre ou crie sua conta"
-        description="É grátis. Guarde suas praias favoritas e acesse de qualquer lugar, quando quiser."
-        ctaLabel="Entrar ou cadastrar"
-      />
+      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+        <Button variant="outline" onClick={() => openAuthModal('login')}>Abrir Login</Button>
+        <Button variant="outline" onClick={() => openAuthModal('register')}>Abrir Cadastro</Button>
+        <Button variant="outline" onClick={() => openAuthModal('forgot')}>Abrir Recuperação</Button>
+      </div>
     </div>
   );
 };

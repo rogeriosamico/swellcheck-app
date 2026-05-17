@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import PrivateRoute from "@/components/PrivateRoute";
+import AuthModal from "@/components/AuthModal";
 import HomeScreen from "@/pages/HomeScreen";
 import BeachPage from "@/pages/BeachPage";
 import DesignSystem from "@/pages/DesignSystem";
@@ -41,6 +42,7 @@ export default function App() {
       <AuthProvider>
         <main style={{ minHeight: "100vh", background: "var(--surface-primary)" }}>
           <Toaster />
+          <AuthModal />
           <AuthRedirectHandler />
           <Routes>
             {/* Rotas públicas */}

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { ChevronLeft, Share, MapPin, Heart, Menu as MenuIcon, LogOut, LogIn } from 'lucide-react';
 import { toast } from "sonner";
@@ -25,8 +24,7 @@ const Header = ({
   className,
 }) => {
   const isBeach = variant === 'beach';
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user, openAuthModal } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -34,7 +32,7 @@ const Header = ({
   };
 
   const menuItems = [
-    ...(!user ? [{ label: 'Entrar', icon: <LogIn size={16} />, onClick: () => navigate('/login') }] : []),
+    ...(!user ? [{ label: 'Entrar', icon: <LogIn size={16} />, onClick: () => openAuthModal('login') }] : []),
     ...(onFavorites ? [{ label: 'Ver favoritos', icon: <Heart size={16} />, onClick: onFavorites }] : []),
     ...(onShare ? [{ label: 'Compartilhar', icon: <Share size={16} />, onClick: onShare }] : []),
     ...(user ? [{ label: 'Sair', icon: <LogOut size={16} />, onClick: handleLogout }] : []),

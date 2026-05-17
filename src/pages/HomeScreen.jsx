@@ -18,7 +18,7 @@ import { haversineKm } from "@/lib/geo";
 
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const currentHour = new Date().getHours();
   const todayIso = getToday();
@@ -197,8 +197,9 @@ export default function HomeScreen() {
         open={authGateOpen}
         onClose={() => setAuthGateOpen(false)}
         onConfirm={() => {
+          setAuthGateOpen(false);
           localStorage.setItem('authFrom', '/favoritos');
-          navigate("/login", { state: { from: { pathname: '/favoritos' } } });
+          openAuthModal('login');
         }}
         title="Entre ou crie sua conta"
         description="É grátis. Guarde suas praias favoritas e acesse de qualquer lugar, quando quiser."

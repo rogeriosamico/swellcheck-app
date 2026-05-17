@@ -64,7 +64,7 @@ export default function BeachPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scrubHour, setScrubHour] = useState(currentHour);
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [authGateIntent, setAuthGateIntent] = useState(null);
   const { favorites, loading: favLoading, toggle } = useFavorites({
@@ -140,13 +140,15 @@ export default function BeachPage() {
   }
 
   const handleAuthGateConfirm = () => {
+    setAuthGateOpen(false);
     if (authGateIntent === 'favoritos') {
       localStorage.setItem('authFrom', '/favoritos');
     } else {
       localStorage.setItem('authFrom', location.pathname + (location.search || ''));
       localStorage.setItem('authIntent', JSON.stringify({ action: 'favorite', beachName: beach }));
     }
-    navigate("/login", { state: { from: location } });
+    setAuthGateIntent(null);
+    openAuthModal('login');
   }
 
   const handleAuthGateClose = () => {
