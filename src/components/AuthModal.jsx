@@ -144,7 +144,7 @@ function LoginView({ email, setEmail, password, setPassword, error, loading, onS
   return (
     <>
       <DialogHeader style={s.header}>
-        <DialogTitle style={s.title}>Swell Check</DialogTitle>
+        <DialogTitle style={s.title}>Entre ou crie sua conta</DialogTitle>
         <p style={s.subtitle}>Previsão de surf para as melhores praias do Brasil.</p>
       </DialogHeader>
 

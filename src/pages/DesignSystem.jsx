@@ -886,6 +886,7 @@ const ModalSection = () => {
 
       {/* 4. Auth Gate Modal */}
       <AuthGateModalDemo />
+
     </div>
   );
 };
