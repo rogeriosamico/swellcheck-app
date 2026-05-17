@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { ChevronLeft, Share, MapPin, Heart, Menu as MenuIcon, LogOut, LogIn } from 'lucide-react';
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ const Header = ({
 
   const handleLogout = async () => {
     await signOut();
+    toast.success("Logout Realizado. Até logo!");
   };
 
   const menuItems = [

@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { useAuth } from "@/context/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import PrivateRoute from "@/components/PrivateRoute";
 import HomeScreen from "@/pages/HomeScreen";
 import BeachPage from "@/pages/BeachPage";
@@ -20,6 +22,7 @@ function AuthRedirectHandler() {
   useEffect(() => {
     if (loading) return;
     if (user && !prevUserRef.current) {
+      toast.success("Login realizado");
       const stored = localStorage.getItem('authFrom');
       if (stored) {
         localStorage.removeItem('authFrom');
@@ -37,6 +40,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <main style={{ minHeight: "100vh", background: "var(--surface-primary)" }}>
+          <Toaster />
           <AuthRedirectHandler />
           <Routes>
             {/* Rotas públicas */}
