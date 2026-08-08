@@ -87,6 +87,13 @@ Exibe um par label/valor com ícone opcional. Usado exclusivamente em grupo de q
 | Período | `Timer` | Estático — não muda |
 | Clima | `Sun` / `Cloud` / `CloudRain` / `CloudLightning` | Derivado do WMO weather code da Open-Meteo |
 
+### Tabs
+
+Alterna entre as visões "Hoje" e "Próximos dias" na BeachPage. Escopo restrito a essa alternância — não usar como tab genérica em outras telas sem revisão de design.
+
+### DayCard
+
+Item de lista da aba "Próximos dias" — um dia por card, começando por hoje. Não adaptar para representar outro tipo de listagem.
 
 ---
 

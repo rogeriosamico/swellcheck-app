@@ -8,6 +8,10 @@ import RegisterPage from "@/pages/RegisterPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import BeachCard from "@/components/BeachCard";
+import DayCard from "@/components/DayCard";
+import { DayCardSkeleton } from "@/components/Skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getToday, addDays } from "@/lib/dates";
 import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning, Menu, MapPin, LogOut, Camera, Info, X, Calendar as CalendarIcon } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
@@ -62,6 +66,8 @@ const DesignSystem = () => {
         { id: 'botoes', label: 'Botões' },
         { id: 'inputs', label: 'Inputs' },
         { id: 'cards', label: 'Cards' },
+        { id: 'daycard', label: 'Day Card' },
+        { id: 'tabs', label: 'Tabs' },
         { id: 'slider', label: 'Slider' },
         { id: 'infoblock', label: 'Info Block' },
         { id: 'header', label: 'Header' },
@@ -98,6 +104,8 @@ const DesignSystem = () => {
       if (activeSubTab === 'botoes') return <ButtonsSection />;
       if (activeSubTab === 'inputs') return <InputsSection />;
       if (activeSubTab === 'cards') return <CardsSection />;
+      if (activeSubTab === 'daycard') return <DayCardSection />;
+      if (activeSubTab === 'tabs') return <TabsSection />;
       if (activeSubTab === 'slider') return <SliderSection />;
       if (activeSubTab === 'infoblock') return <InfoBlockSection />;
       if (activeSubTab === 'header') return <HeaderSection />;
@@ -601,6 +609,49 @@ const CardsSection = () => (
     </div>
   </div>
 );
+
+const DayCardSection = () => (
+  <div style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+    <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
+      Componente de domínio — representa um dia na lista da aba "Próximos dias" da BeachPage. Título mostra dia da semana + data (via <code style={{ fontFamily: 'monospace' }}>weekdayAndDateLabel</code> de <code style={{ fontFamily: 'monospace' }}>lib/dates.js</code>), Badge de condição à direita. Toque navega para a aba "Hoje" com a data daquele card selecionada. Não usar para representar outro tipo de conteúdo — mesma regra de escopo do BeachCard.
+    </p>
+
+    <DayCard dateIso={getToday()} condition="bom" label="Bom" />
+    <DayCard dateIso={addDays(getToday(), 1)} condition="marola" label="Marola" />
+    <DayCard dateIso={addDays(getToday(), 5)} condition="storm" label="Storm" />
+    <DayCard dateIso={addDays(getToday(), 6)} condition="flat" label="Flat" />
+
+    <SectionTitle style={{ marginTop: 'var(--spacing-sm)' }}>Loading state</SectionTitle>
+    <DayCardSkeleton />
+  </div>
+);
+
+const TabsSection = () => {
+  const [view, setView] = useState('hoje');
+  return (
+    <div style={{ maxWidth: 400 }}>
+      <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+        Segmented control usado no topo da BeachPage para alternar entre a visão "Hoje" e "Próximos dias". Construído com <code style={{ fontFamily: 'monospace' }}>@radix-ui/react-tabs</code> (shadcn). Estado ativo usa <code style={{ fontFamily: 'monospace' }}>--surface-secondary</code> + <code style={{ fontFamily: 'monospace' }}>--text-invert</code> — o mesmo par de tokens já usado para "selecionado" no Calendar e no Slider. Sem cor de condição nos tabs.
+      </p>
+      <Tabs value={view} onValueChange={setView}>
+        <TabsList className="w-full h-[var(--touch-target)] p-1 rounded-[var(--radius-rounded)] bg-[var(--surface-terciary)] gap-1">
+          <TabsTrigger
+            value="hoje"
+            className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
+          >
+            Hoje
+          </TabsTrigger>
+          <TabsTrigger
+            value="proximos"
+            className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
+          >
+            Próximos dias
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+};
 
 const SliderSection = () => {
   const [value, setValue] = useState([50]);

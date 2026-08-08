@@ -36,6 +36,23 @@ export function HomeCardSkeleton() {
   );
 }
 
+export function DayCardSkeleton() {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-sm)",
+      border: "1.5px solid var(--border-primary)",
+      borderRadius: "var(--radius-rounded)",
+      padding: "var(--spacing-md)",
+    }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-sm)" }}>
+        <SkeletonPulse width={140} height={18} />
+        <SkeletonPulse width={90} height={12} />
+      </div>
+      <SkeletonPulse width={64} height={28} borderRadius={8} />
+    </div>
+  );
+}
+
 export function BeachDetailSkeleton() {
   return (
     <div style={{ border: "1.5px solid var(--border-primary)", borderRadius: "var(--radius-minimal)", padding: "24px 20px" }}>

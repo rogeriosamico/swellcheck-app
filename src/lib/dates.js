@@ -46,3 +46,20 @@ export function fmtHr(hr) {
   if (hr === 12) return "12pm";
   return hr < 12 ? `${hr}am` : `${hr - 12}pm`;
 }
+
+export function weekdayAndDateLabel(iso) {
+  const d = new Date(iso + "T12:00:00");
+  const day = d.getDay();
+  const weekdayName = (day === 0 || day === 6) ? PT_DAYS_FULL[day] : `${PT_DAYS_FULL[day]}-feira`;
+  const weekday = iso === getToday() ? `${weekdayName} (Hoje)` : weekdayName;
+  const date = `${d.getDate()} de ${PT_MONTHS[d.getMonth()]}`;
+  return { weekday, date };
+}
+
+export function shortRangeLabel(startIso, endIso) {
+  const s = new Date(startIso + "T12:00:00");
+  const e = new Date(endIso + "T12:00:00");
+  return s.getMonth() === e.getMonth()
+    ? `${s.getDate()} - ${e.getDate()} de ${PT_MONTHS[e.getMonth()]}`
+    : `${s.getDate()} de ${PT_MONTHS[s.getMonth()]} - ${e.getDate()} de ${PT_MONTHS[e.getMonth()]}`;
+}

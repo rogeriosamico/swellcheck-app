@@ -5,15 +5,17 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
 import AuthGateModal from "@/components/AuthGateModal";
-import { BeachDetailSkeleton } from "@/components/Skeleton";
+import { BeachDetailSkeleton, DayCardSkeleton } from "@/components/Skeleton";
 import TideChart from "@/components/TideChart";
 import TimeSlider from "@/components/TimeSlider";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import InfoBlock from "@/components/InfoBlock";
 import DateFilterModal from "@/components/DateFilterModal";
+import DayCard from "@/components/DayCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { SLUG_TO_BEACH, CONDITIONS } from "@/lib/constants";
 import { fetchForecast, fetchTide } from "@/lib/api";
-import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr } from "@/lib/dates";
+import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLabel, fmtHr, shortRangeLabel } from "@/lib/dates";
 import { swellSegs } from "@/lib/swell";
 import { parseTidePts, interpolateTideLevel } from "@/lib/tides";
 
@@ -58,11 +60,15 @@ export default function BeachPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const [view, setView] = useState("hoje"); // "hoje" | "proximos"
   const [beachData, setBeachData] = useState(null);
   const [tideData, setTideData] = useState(null);
   const [tideError, setTideError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [nextDaysData, setNextDaysData] = useState(null);
+  const [nextDaysLoading, setNextDaysLoading] = useState(false);
+  const [nextDaysError, setNextDaysError] = useState(false);
   const [scrubHour, setScrubHour] = useState(currentHour);
   const { user, openAuthModal } = useAuth();
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -114,6 +120,24 @@ export default function BeachPage() {
       .then(tide => setTideData(tide))
       .catch(() => setTideError(true));
   }, [beach, pageDay, currentHour]);
+
+  useEffect(() => {
+    if (!beach || view !== "proximos" || nextDaysData || nextDaysLoading) return;
+    setNextDaysLoading(true);
+    setNextDaysError(false);
+
+    const days = Array.from({ length: 7 }, (_, i) => addDays(todayIso, i));
+
+    Promise.all(days.map(day => fetchForecast(beach, day)))
+      .then(results => {
+        setNextDaysData(days.map((day, i) => ({ date: day, cond: results[i]?.cond })));
+        setNextDaysLoading(false);
+      })
+      .catch(() => {
+        setNextDaysError(true);
+        setNextDaysLoading(false);
+      });
+  }, [beach, view, todayIso]);
 
   useEffect(() => {
     if (!user || favLoading) return;
@@ -213,135 +237,189 @@ export default function BeachPage() {
         onShare={() => setShareOpen(true)}
       />
 
-      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface-primary)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-md)", padding: "var(--spacing-md)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-sm)" }}>
-              <span style={{ width: 14, height: 14, borderRadius: "50%", background: condColor, flexShrink: 0 }} />
-              <span className="text-title-sm font-token-bold text-[var(--text-primary)] leading-none">
-                {CONDITIONS[dayCond]?.label}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-xs)", flexShrink: 0 }}>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setPageDay(addDays(pageDay, -1))}
-              disabled={pageDay <= todayIso}
-              className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)]"
-              aria-label="Dia anterior"
+      <Tabs value={view} onValueChange={setView}>
+        <div style={{ padding: "var(--spacing-md) var(--spacing-md) 0" }}>
+          <TabsList className="w-full h-[var(--touch-target)] p-1 rounded-[var(--radius-rounded)] bg-[var(--surface-terciary)] gap-1">
+            <TabsTrigger
+              value="hoje"
+              className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
             >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-
-            <DateFilterModal
-              initialDate={pageDay}
-              onApply={day => setPageDay(day)}
-              trigger={
-                <Button
-                  variant="outline"
-                  aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
-                  className="text-button font-token-bold gap-[var(--spacing-sm)] px-[var(--spacing-md)] border-[1.5px] border-[var(--border-primary)] bg-[var(--surface-primary)] text-[var(--text-primary)] whitespace-nowrap h-[var(--touch-target)]"
-                >
-                  <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80" />
-                  {shortDateLabel(pageDay)}
-                </Button>
-              }
-            />
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setPageDay(addDays(pageDay, 1))}
-              disabled={pageDay >= maxIso}
-              className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)]"
-              aria-label="Próximo dia"
+              Hoje
+            </TabsTrigger>
+            <TabsTrigger
+              value="proximos"
+              className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
             >
-              <ChevronLeft className="w-5 h-5 rotate-180" />
-            </Button>
-          </div>
+              Próximos dias
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
 
-      <div style={{ padding: "16px 16px 0" }}>
-        {loading ? (
-          <BeachDetailSkeleton />
-        ) : error ? (
-          <div role="alert" style={{ fontSize: "var(--font-size-body)", color: "var(--text-storm)", textAlign: "center", padding: "48px 0" }}>
-            {error}
-          </div>
-        ) : beachData && hourData ? (
-
-          <div>
-
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-sm)", marginBottom: "var(--spacing-md)" }}>
+        <TabsContent value="hoje" className="mt-0">
+          <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface-primary)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-md)", padding: "var(--spacing-md)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-                <span className="text-headline font-token-bold text-[var(--text-primary)]">
-                  Condições às {fmtHr(scrubHour)}
-                </span>
-                <Badge variant={hourData.cond} size="small">
-                  {CONDITIONS[hourData.cond]?.label}
-                </Badge>
-              </div>
-
-
-            </div>
-
-            <div className="grid grid-cols-2 gap-[var(--spacing-sm)] mb-[var(--spacing-md)]">
-              <InfoBlock
-                label="Altura maré"
-                value={tideLevel != null ? `${tideLevel}m` : '—'}
-                icon={tideTrend ? (tideTrend === 'up' ? <ArrowUp size={20} /> : <ArrowDown size={20} />) : undefined}
-              />
-              <InfoBlock
-                label="Vento"
-                value={`${hourData.windSpeed} km/h`}
-                icon={
-                  <span className="flex items-center gap-1">
-                    <Wind size={18} />
-                    <span className="text-token-subtitle-bold">{hourData.windDir}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-sm)" }}>
+                  <span style={{ width: 14, height: 14, borderRadius: "50%", background: condColor, flexShrink: 0 }} />
+                  <span className="text-title-sm font-token-bold text-[var(--text-primary)] leading-none">
+                    {CONDITIONS[dayCond]?.label}
                   </span>
-                }
-              />
-              <InfoBlock
-                label="Período"
-                value={`${hourData.swellPeriod}s`}
-                icon={<Timer size={20} />}
-              />
-              <InfoBlock
-                label="Clima"
-                value={hourData.temperature != null ? `${hourData.temperature}°C` : '—'}
-                icon={weatherIcon(hourData.weatherCode)}
-              />
-            </div>
-
-            <SwellPowerBar
-              value={swellSegs(hourData.swellKj)}
-              label={`${hourData.swellKj} Kj`}
-            />
-
-            {tideError ? (
-              <div style={{ display: "flex", alignItems: "center", borderRadius: "var(--radius-minimal)", background: "var(--surface-terciary)", marginBottom: "var(--spacing-xs)" }}>
-                <Info className="w-[14px] h-[14px] shrink-0 opacity-40" />
-                <span style={{ fontSize: "var(--font-size-subtitle)", color: "var(--text-secondary)" }}>
-                  Dados de maré temporariamente indisponíveis.
-                </span>
-              </div>
-            ) : tideData ? (
-              <div className="bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-[var(--radius-minimal)] p-[var(--spacing-md)] mt-4">
-                <span className="text-subtitle font-token-regular text-[var(--text-secondary)] block mb-3">Maré</span>
-                <TideChart tides={tideData?.tides} currentHour={scrubHour} />
-                <div className="mt-1">
-                  <TimeSlider value={scrubHour} onChange={setScrubHour} />
                 </div>
               </div>
-            ) : null}
 
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-xs)", flexShrink: 0 }}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPageDay(addDays(pageDay, -1))}
+                  disabled={pageDay <= todayIso}
+                  className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)]"
+                  aria-label="Dia anterior"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+
+                <DateFilterModal
+                  initialDate={pageDay}
+                  onApply={day => setPageDay(day)}
+                  trigger={
+                    <Button
+                      variant="outline"
+                      aria-label={`Data: ${parseDateLabel(pageDay)}. Clique para alterar`}
+                      className="text-button font-token-bold gap-[var(--spacing-sm)] px-[var(--spacing-md)] border-[1.5px] border-[var(--border-primary)] bg-[var(--surface-primary)] text-[var(--text-primary)] whitespace-nowrap h-[var(--touch-target)]"
+                    >
+                      <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80" />
+                      {shortDateLabel(pageDay)}
+                    </Button>
+                  }
+                />
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPageDay(addDays(pageDay, 1))}
+                  disabled={pageDay >= maxIso}
+                  className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)]"
+                  aria-label="Próximo dia"
+                >
+                  <ChevronLeft className="w-5 h-5 rotate-180" />
+                </Button>
+              </div>
+            </div>
           </div>
-        ) : null}
-      </div>
+
+          <div style={{ padding: "16px 16px 0" }}>
+            {loading ? (
+              <BeachDetailSkeleton />
+            ) : error ? (
+              <div role="alert" style={{ fontSize: "var(--font-size-body)", color: "var(--text-storm)", textAlign: "center", padding: "48px 0" }}>
+                {error}
+              </div>
+            ) : beachData && hourData ? (
+
+              <div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--spacing-sm)", marginBottom: "var(--spacing-md)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
+                    <span className="text-headline font-token-bold text-[var(--text-primary)]">
+                      Condições às {fmtHr(scrubHour)}
+                    </span>
+                    <Badge variant={hourData.cond} size="small">
+                      {CONDITIONS[hourData.cond]?.label}
+                    </Badge>
+                  </div>
+
+
+                </div>
+
+                <div className="grid grid-cols-2 gap-[var(--spacing-sm)] mb-[var(--spacing-md)]">
+                  <InfoBlock
+                    label="Altura maré"
+                    value={tideLevel != null ? `${tideLevel}m` : '—'}
+                    icon={tideTrend ? (tideTrend === 'up' ? <ArrowUp size={20} /> : <ArrowDown size={20} />) : undefined}
+                  />
+                  <InfoBlock
+                    label="Vento"
+                    value={`${hourData.windSpeed} km/h`}
+                    icon={
+                      <span className="flex items-center gap-1">
+                        <Wind size={18} />
+                        <span className="text-token-subtitle-bold">{hourData.windDir}</span>
+                      </span>
+                    }
+                  />
+                  <InfoBlock
+                    label="Período"
+                    value={`${hourData.swellPeriod}s`}
+                    icon={<Timer size={20} />}
+                  />
+                  <InfoBlock
+                    label="Clima"
+                    value={hourData.temperature != null ? `${hourData.temperature}°C` : '—'}
+                    icon={weatherIcon(hourData.weatherCode)}
+                  />
+                </div>
+
+                <SwellPowerBar
+                  value={swellSegs(hourData.swellKj)}
+                  label={`${hourData.swellKj} Kj`}
+                />
+
+                {tideError ? (
+                  <div style={{ display: "flex", alignItems: "center", borderRadius: "var(--radius-minimal)", background: "var(--surface-terciary)", marginBottom: "var(--spacing-xs)" }}>
+                    <Info className="w-[14px] h-[14px] shrink-0 opacity-40" />
+                    <span style={{ fontSize: "var(--font-size-subtitle)", color: "var(--text-secondary)" }}>
+                      Dados de maré temporariamente indisponíveis.
+                    </span>
+                  </div>
+                ) : tideData ? (
+                  <div className="bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-[var(--radius-minimal)] p-[var(--spacing-md)] mt-4">
+                    <span className="text-subtitle font-token-regular text-[var(--text-secondary)] block mb-3">Maré</span>
+                    <TideChart tides={tideData?.tides} currentHour={scrubHour} />
+                    <div className="mt-1">
+                      <TimeSlider value={scrubHour} onChange={setScrubHour} />
+                    </div>
+                  </div>
+                ) : null}
+
+              </div>
+            ) : null}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="proximos" className="mt-0">
+          <div style={{ padding: "16px 16px 0" }}>
+            <div className="flex items-center justify-center gap-[var(--spacing-sm)] mb-[var(--spacing-md)]">
+              <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80 text-[var(--text-primary)]" />
+              <span className="text-button font-token-bold text-[var(--text-primary)]">
+                {shortRangeLabel(todayIso, addDays(todayIso, 6))}
+              </span>
+            </div>
+
+            {nextDaysLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-sm)" }}>
+                {Array.from({ length: 7 }).map((_, i) => <DayCardSkeleton key={i} />)}
+              </div>
+            ) : nextDaysError ? (
+              <div role="alert" style={{ fontSize: "var(--font-size-body)", color: "var(--text-storm)", textAlign: "center", padding: "48px 0" }}>
+                Não foi possível carregar os dados.
+              </div>
+            ) : nextDaysData ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-sm)" }}>
+                {nextDaysData.map(({ date, cond }) => (
+                  <DayCard
+                    key={date}
+                    dateIso={date}
+                    condition={cond}
+                    label={CONDITIONS[cond]?.label}
+                    onClick={() => { setView("hoje"); setPageDay(date); }}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <div style={{ padding: "24px 16px 0" }}>
         <Button

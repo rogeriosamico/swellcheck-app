@@ -257,6 +257,54 @@ Sempre juntos dentro de um card com borda.
 
 ---
 
+### Tabs
+
+Segmented control usado no topo da BeachPage para alternar entre "Hoje" e "Próximos dias". Não usar como tab genérica em outras telas sem revisão de design.
+
+```jsx
+<Tabs value={view} onValueChange={setView}>
+  <TabsList className="w-full h-[var(--touch-target)] p-1 rounded-[var(--radius-rounded)] bg-[var(--surface-terciary)] gap-1">
+    <TabsTrigger
+      value="hoje"
+      className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
+    >
+      Hoje
+    </TabsTrigger>
+    <TabsTrigger value="proximos" className="...">Próximos dias</TabsTrigger>
+  </TabsList>
+  <TabsContent value="hoje">...</TabsContent>
+  <TabsContent value="proximos">...</TabsContent>
+</Tabs>
+```
+
+- Gerado via shadcn (`@radix-ui/react-tabs`) em `src/components/ui/tabs.jsx` — classes default do CLI (`bg-muted`, `rounded-md`, etc.) são sobrescritas via `className` no ponto de uso, o arquivo gerado não é editado
+- Estado ativo: `--surface-secondary` + `--text-invert` (mesmo par de tokens usado para "selecionado" no Calendar e no thumb do Slider)
+- Estado inativo: `--surface-terciary` + `--text-secondary`
+- Altura `var(--touch-target)` (44px), radius `var(--radius-rounded)`
+- Sem cor de condição — regra do sistema: cor só indica qualidade do mar
+
+---
+
+### DayCard
+
+Card de listagem da aba "Próximos dias" da BeachPage. Um item por dia, começando por hoje.
+
+```jsx
+<DayCard
+  dateIso="2026-08-08"
+  condition="bom"   // storm | bom | marola | flat
+  label="Bom"
+  onClick={() => {}}
+/>
+```
+
+- Mesmo padrão visual do `BeachCard`: título + subtítulo à esquerda, `Badge` de condição à direita
+- Título = dia da semana (`weekdayAndDateLabel` de `lib/dates.js`, ex. "Segunda-feira"), subtítulo = data (ex. "06 de Julho")
+- Escopo: item de lista de dias na BeachPage — não adaptar para outro tipo de listagem
+- Clique navega para a aba "Hoje" com a data daquele card selecionada
+
+---
+
 ### DateFilterModal
 
 Aceita qualquer elemento como trigger via prop.
@@ -300,7 +348,8 @@ Estados de loading:
 
 ```jsx
 <HomeCardSkeleton />     // placeholder do BeachCard
-<BeachDetailSkeleton />  // placeholder da BeachPage inteira
+<BeachDetailSkeleton />  // placeholder da BeachPage inteira (aba "Hoje")
+<DayCardSkeleton />      // placeholder do DayCard (lista da aba "Próximos dias")
 ```
 
 ---
@@ -341,20 +390,37 @@ Estados de loading:
 <div style={{ width: "100%", maxWidth: 680, margin: "0 auto", padding: "0 0 80px" }}>
   <Header variant="beach" title={beach} onBack={...} showShare={true} onShare={...} />
 
-  {/* Barra de navegação de data — sticky */}
-  <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface-primary)" }}>
-    {/* condição do dia (dot + label) | ChevronLeft + DateFilterModal + ChevronRight */}
-  </div>
+  <Tabs value={view} onValueChange={setView}>
+    {/* TabsList — segmented control "Hoje" | "Próximos dias", abre em "hoje" por padrão */}
 
-  <div style={{ padding: "16px 16px 0" }}>
-    {/* loading → <BeachDetailSkeleton /> */}
-    {/* erro → mensagem com --text-storm */}
-    {/* dados → */}
-      {/* "Condições às [hora]" + Badge horário */}
-      {/* InfoBlock × 3 */}
-      {/* SwellPowerBar */}
-      {/* TideChart + TimeSlider */}
-  </div>
+    <TabsContent value="hoje">
+      {/* Barra de navegação de data — sticky */}
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--surface-primary)" }}>
+        {/* condição do dia (dot + label) | ChevronLeft + DateFilterModal + ChevronRight */}
+      </div>
+
+      <div style={{ padding: "16px 16px 0" }}>
+        {/* loading → <BeachDetailSkeleton /> */}
+        {/* erro → mensagem com --text-storm */}
+        {/* dados → */}
+          {/* "Condições às [hora]" + Badge horário */}
+          {/* InfoBlock × 3 */}
+          {/* SwellPowerBar */}
+          {/* TideChart + TimeSlider */}
+      </div>
+    </TabsContent>
+
+    <TabsContent value="proximos">
+      <div style={{ padding: "16px 16px 0" }}>
+        {/* rótulo estático do intervalo (hoje até hoje+6), sem chevrons — sem paginação */}
+        {/* loading → 7x <DayCardSkeleton /> */}
+        {/* erro → mensagem com --text-storm */}
+        {/* dados → 7x <DayCard /> (hoje + 6 dias), clique navega para a aba "Hoje" com a data do card */}
+      </div>
+    </TabsContent>
+  </Tabs>
+
+  {/* Botão "Favoritar praia" — fora do Tabs, visível nas duas abas */}
 
   {/* Share Dialog */}
 </div>
@@ -383,6 +449,8 @@ Estados de loading:
 | SwellPowerBar | "Força do swell" (interno, não parametrizado) |
 | Seção de maré | "Maré" |
 | Cabeçalho horário | "Condições às [hora]" |
+| Tab 1 | "Hoje" |
+| Tab 2 | "Próximos dias" |
 
 **Níveis de SwellPowerBar (1→5):** Fraco · Médio · Bom · Forte · Muito forte
 

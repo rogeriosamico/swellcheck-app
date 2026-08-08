@@ -8,6 +8,10 @@ Exibe `HomeCardSkeleton` em quantidade igual ao total de praias cadastradas. Nã
 
 Exibe `BeachDetailSkeleton` ocupando toda a área de conteúdo. Não exibe texto.
 
+## Carregando — próximos dias
+
+Exibe `DayCardSkeleton` em quantidade igual a 7 (hoje + 6 dias). Não exibe texto.
+
 ## Nenhum resultado (busca)
 
 ```
