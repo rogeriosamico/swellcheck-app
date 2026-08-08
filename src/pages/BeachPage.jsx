@@ -66,12 +66,14 @@ export default function BeachPage() {
   const [tideError, setTideError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [weekStart, setWeekStart] = useState(todayIso);
   const [nextDaysData, setNextDaysData] = useState(null);
   const [nextDaysLoading, setNextDaysLoading] = useState(false);
   const [nextDaysError, setNextDaysError] = useState(false);
   const nextDaysCache = useRef({});
   const maxWeekStart = addDays(maxIso, -6);
+  // A semana exibida acompanha o dia selecionado na aba "Dia" — sempre inclui pageDay,
+  // recuando o suficiente para caber os 7 dias quando pageDay está perto do fim do range.
+  const weekStart = pageDay < maxWeekStart ? pageDay : maxWeekStart;
   const [scrubHour, setScrubHour] = useState(currentHour);
   const { user, openAuthModal } = useAuth();
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -416,7 +418,7 @@ export default function BeachPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setWeekStart(addDays(weekStart, -1))}
+                onClick={() => setPageDay(addDays(weekStart, -1))}
                 disabled={weekStart <= todayIso}
                 className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)] shrink-0"
                 aria-label="Semana anterior"
@@ -434,7 +436,7 @@ export default function BeachPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setWeekStart(addDays(weekStart, 1))}
+                onClick={() => setPageDay(addDays(weekStart, 1))}
                 disabled={weekStart >= maxWeekStart}
                 className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)] shrink-0"
                 aria-label="Próxima semana"
