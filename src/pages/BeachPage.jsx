@@ -66,9 +66,12 @@ export default function BeachPage() {
   const [tideError, setTideError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [weekStart, setWeekStart] = useState(todayIso);
   const [nextDaysData, setNextDaysData] = useState(null);
   const [nextDaysLoading, setNextDaysLoading] = useState(false);
   const [nextDaysError, setNextDaysError] = useState(false);
+  const nextDaysCache = useRef({});
+  const maxWeekStart = addDays(maxIso, -6);
   const [scrubHour, setScrubHour] = useState(currentHour);
   const { user, openAuthModal } = useAuth();
   const [authGateOpen, setAuthGateOpen] = useState(false);
@@ -122,22 +125,42 @@ export default function BeachPage() {
   }, [beach, pageDay, currentHour]);
 
   useEffect(() => {
-    if (!beach || view !== "proximos" || nextDaysData || nextDaysLoading) return;
+    if (!beach || view !== "proximos") return;
+
+    const cached = nextDaysCache.current[weekStart];
+    if (cached) {
+      setNextDaysData(cached.data ?? null);
+      setNextDaysError(!!cached.error);
+      setNextDaysLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     setNextDaysLoading(true);
     setNextDaysError(false);
+    setNextDaysData(null);
 
-    const days = Array.from({ length: 7 }, (_, i) => addDays(todayIso, i));
+    const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     Promise.all(days.map(day => fetchForecast(beach, day)))
       .then(results => {
-        setNextDaysData(days.map((day, i) => ({ date: day, cond: results[i]?.cond })));
-        setNextDaysLoading(false);
+        const data = days.map((day, i) => ({ date: day, cond: results[i]?.cond }));
+        nextDaysCache.current[weekStart] = { data };
+        if (!cancelled) {
+          setNextDaysData(data);
+          setNextDaysLoading(false);
+        }
       })
       .catch(() => {
-        setNextDaysError(true);
-        setNextDaysLoading(false);
+        nextDaysCache.current[weekStart] = { error: true };
+        if (!cancelled) {
+          setNextDaysError(true);
+          setNextDaysLoading(false);
+        }
       });
-  }, [beach, view, todayIso]);
+
+    return () => { cancelled = true; };
+  }, [beach, view, weekStart]);
 
   useEffect(() => {
     if (!user || favLoading) return;
@@ -244,13 +267,13 @@ export default function BeachPage() {
               value="hoje"
               className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
             >
-              Hoje
+              Dia
             </TabsTrigger>
             <TabsTrigger
               value="proximos"
               className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
             >
-              Próximos dias
+              Semana
             </TabsTrigger>
           </TabsList>
         </div>
@@ -389,11 +412,35 @@ export default function BeachPage() {
 
         <TabsContent value="proximos" className="mt-0">
           <div style={{ padding: "16px 16px 0" }}>
-            <div className="flex items-center justify-center gap-[var(--spacing-sm)] mb-[var(--spacing-md)]">
-              <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80 text-[var(--text-primary)]" />
-              <span className="text-button font-token-bold text-[var(--text-primary)]">
-                {shortRangeLabel(todayIso, addDays(todayIso, 6))}
-              </span>
+            <div className="flex items-center gap-[var(--spacing-xs)] mb-[var(--spacing-md)]">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setWeekStart(addDays(weekStart, -1))}
+                disabled={weekStart <= todayIso}
+                className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)] shrink-0"
+                aria-label="Semana anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+
+              <div className="flex-1 flex items-center justify-center gap-[var(--spacing-sm)] h-[var(--touch-target)] px-[var(--spacing-md)] border-[1.5px] border-[var(--border-primary)] rounded-[var(--radius-minimal)] bg-[var(--surface-primary)]">
+                <Calendar className="w-[18px] h-[18px] shrink-0 opacity-80 text-[var(--text-primary)]" />
+                <span className="text-button font-token-bold text-[var(--text-primary)] whitespace-nowrap">
+                  {shortRangeLabel(weekStart, addDays(weekStart, 6))}
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setWeekStart(addDays(weekStart, 1))}
+                disabled={weekStart >= maxWeekStart}
+                className="h-[var(--touch-target)] w-[var(--touch-target)] border-[var(--border-primary)] bg-[var(--surface-primary)] shrink-0"
+                aria-label="Próxima semana"
+              >
+                <ChevronLeft className="w-5 h-5 rotate-180" />
+              </Button>
             </div>
 
             {nextDaysLoading ? (

@@ -259,7 +259,7 @@ Sempre juntos dentro de um card com borda.
 
 ### Tabs
 
-Segmented control usado no topo da BeachPage para alternar entre "Hoje" e "Próximos dias". Não usar como tab genérica em outras telas sem revisão de design.
+Segmented control usado no topo da BeachPage para alternar entre "Dia" e "Semana". Não usar como tab genérica em outras telas sem revisão de design.
 
 ```jsx
 <Tabs value={view} onValueChange={setView}>
@@ -268,9 +268,9 @@ Segmented control usado no topo da BeachPage para alternar entre "Hoje" e "Próx
       value="hoje"
       className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
     >
-      Hoje
+      Dia
     </TabsTrigger>
-    <TabsTrigger value="proximos" className="...">Próximos dias</TabsTrigger>
+    <TabsTrigger value="proximos" className="...">Semana</TabsTrigger>
   </TabsList>
   <TabsContent value="hoje">...</TabsContent>
   <TabsContent value="proximos">...</TabsContent>
@@ -287,7 +287,7 @@ Segmented control usado no topo da BeachPage para alternar entre "Hoje" e "Próx
 
 ### DayCard
 
-Card de listagem da aba "Próximos dias" da BeachPage. Um item por dia, começando por hoje.
+Card de listagem da aba "Semana" da BeachPage. Um item por dia, começando por hoje.
 
 ```jsx
 <DayCard
@@ -301,7 +301,7 @@ Card de listagem da aba "Próximos dias" da BeachPage. Um item por dia, começan
 - Mesmo padrão visual do `BeachCard`: título + subtítulo à esquerda, `Badge` de condição à direita
 - Título = dia da semana (`weekdayAndDateLabel` de `lib/dates.js`, ex. "Segunda-feira"), subtítulo = data (ex. "06 de Julho")
 - Escopo: item de lista de dias na BeachPage — não adaptar para outro tipo de listagem
-- Clique navega para a aba "Hoje" com a data daquele card selecionada
+- Clique navega para a aba "Dia" com a data daquele card selecionada
 
 ---
 
@@ -348,8 +348,8 @@ Estados de loading:
 
 ```jsx
 <HomeCardSkeleton />     // placeholder do BeachCard
-<BeachDetailSkeleton />  // placeholder da BeachPage inteira (aba "Hoje")
-<DayCardSkeleton />      // placeholder do DayCard (lista da aba "Próximos dias")
+<BeachDetailSkeleton />  // placeholder da BeachPage inteira (aba "Dia")
+<DayCardSkeleton />      // placeholder do DayCard (lista da aba "Semana")
 ```
 
 ---
@@ -391,7 +391,7 @@ Estados de loading:
   <Header variant="beach" title={beach} onBack={...} showShare={true} onShare={...} />
 
   <Tabs value={view} onValueChange={setView}>
-    {/* TabsList — segmented control "Hoje" | "Próximos dias", abre em "hoje" por padrão */}
+    {/* TabsList — segmented control "Dia" | "Semana", abre em "hoje" por padrão */}
 
     <TabsContent value="hoje">
       {/* Barra de navegação de data — sticky */}
@@ -412,10 +412,10 @@ Estados de loading:
 
     <TabsContent value="proximos">
       <div style={{ padding: "16px 16px 0" }}>
-        {/* rótulo estático do intervalo (hoje até hoje+6), sem chevrons — sem paginação */}
+        {/* intervalo de 7 dias (weekStart..weekStart+6) com ChevronLeft/ChevronRight — só 1 passo à frente é possível (limite hoje+7 da API) */}
         {/* loading → 7x <DayCardSkeleton /> */}
         {/* erro → mensagem com --text-storm */}
-        {/* dados → 7x <DayCard /> (hoje + 6 dias), clique navega para a aba "Hoje" com a data do card */}
+        {/* dados → 7x <DayCard /> (hoje + 6 dias), clique navega para a aba "Dia" com a data do card */}
       </div>
     </TabsContent>
   </Tabs>
@@ -449,8 +449,8 @@ Estados de loading:
 | SwellPowerBar | "Força do swell" (interno, não parametrizado) |
 | Seção de maré | "Maré" |
 | Cabeçalho horário | "Condições às [hora]" |
-| Tab 1 | "Hoje" |
-| Tab 2 | "Próximos dias" |
+| Tab 1 | "Dia" |
+| Tab 2 | "Semana" |
 
 **Níveis de SwellPowerBar (1→5):** Fraco · Médio · Bom · Forte · Muito forte
 

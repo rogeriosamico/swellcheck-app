@@ -22,8 +22,8 @@ Labels e descrições imutáveis — não variar por contexto:
 | Seção de maré | `"Maré"` |
 | Melhor horário | `"Melhor hora"` |
 | Cabeçalho de dado horário | `"Condições às [hora]"` |
-| Tab 1 (BeachPage) | `"Hoje"` |
-| Tab 2 (BeachPage) | `"Próximos dias"` |
+| Tab 1 (BeachPage) | `"Dia"` |
+| Tab 2 (BeachPage) | `"Semana"` |
 
 Não usar variações como "Gráfico de Maré", "Tábua de Maré", "Dados de Vento", etc.
 

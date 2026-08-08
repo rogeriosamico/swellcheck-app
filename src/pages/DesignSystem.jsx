@@ -613,7 +613,7 @@ const CardsSection = () => (
 const DayCardSection = () => (
   <div style={{ maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
-      Componente de domínio — representa um dia na lista da aba "Próximos dias" da BeachPage. Título mostra dia da semana + data (via <code style={{ fontFamily: 'monospace' }}>weekdayAndDateLabel</code> de <code style={{ fontFamily: 'monospace' }}>lib/dates.js</code>), Badge de condição à direita. Toque navega para a aba "Hoje" com a data daquele card selecionada. Não usar para representar outro tipo de conteúdo — mesma regra de escopo do BeachCard.
+      Componente de domínio — representa um dia na lista da aba "Semana" da BeachPage. Título mostra dia da semana + data (via <code style={{ fontFamily: 'monospace' }}>weekdayAndDateLabel</code> de <code style={{ fontFamily: 'monospace' }}>lib/dates.js</code>), Badge de condição à direita. Toque navega para a aba "Dia" com a data daquele card selecionada. Não usar para representar outro tipo de conteúdo — mesma regra de escopo do BeachCard.
     </p>
 
     <DayCard dateIso={getToday()} condition="bom" label="Bom" />
@@ -631,7 +631,7 @@ const TabsSection = () => {
   return (
     <div style={{ maxWidth: 400 }}>
       <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-        Segmented control usado no topo da BeachPage para alternar entre a visão "Hoje" e "Próximos dias". Construído com <code style={{ fontFamily: 'monospace' }}>@radix-ui/react-tabs</code> (shadcn). Estado ativo usa <code style={{ fontFamily: 'monospace' }}>--surface-secondary</code> + <code style={{ fontFamily: 'monospace' }}>--text-invert</code> — o mesmo par de tokens já usado para "selecionado" no Calendar e no Slider. Sem cor de condição nos tabs.
+        Segmented control usado no topo da BeachPage para alternar entre a visão "Dia" e "Semana". Construído com <code style={{ fontFamily: 'monospace' }}>@radix-ui/react-tabs</code> (shadcn). Estado ativo usa <code style={{ fontFamily: 'monospace' }}>--surface-secondary</code> + <code style={{ fontFamily: 'monospace' }}>--text-invert</code> — o mesmo par de tokens já usado para "selecionado" no Calendar e no Slider. Sem cor de condição nos tabs.
       </p>
       <Tabs value={view} onValueChange={setView}>
         <TabsList className="w-full h-[var(--touch-target)] p-1 rounded-[var(--radius-rounded)] bg-[var(--surface-terciary)] gap-1">
@@ -639,13 +639,13 @@ const TabsSection = () => {
             value="hoje"
             className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
           >
-            Hoje
+            Dia
           </TabsTrigger>
           <TabsTrigger
             value="proximos"
             className="flex-1 h-full rounded-[var(--radius-rounded)] text-button font-token-bold text-[var(--text-secondary)] data-[state=active]:bg-[var(--surface-secondary)] data-[state=active]:text-[var(--text-invert)]"
           >
-            Próximos dias
+            Semana
           </TabsTrigger>
         </TabsList>
       </Tabs>
