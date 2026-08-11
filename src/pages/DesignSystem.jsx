@@ -12,7 +12,7 @@ import DayCard from "@/components/DayCard";
 import { DayCardSkeleton } from "@/components/Skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getToday, addDays } from "@/lib/dates";
-import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning, Menu, MapPin, LogOut, Camera, Info, X, Calendar as CalendarIcon } from "lucide-react";
+import { Search, Heart, Share, Palette, Component as ComponentIcon, PanelLeft, PanelLeftClose, MessageCircle, Send, Mail, ExternalLink, Check, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning, Moon, CloudMoon, CloudMoonRain, Menu, MapPin, LogOut, Camera, Info, X, Calendar as CalendarIcon } from "lucide-react";
 import SwellPowerBar from "@/components/SwellPowerBar";
 import Header from "@/components/Header";
 import DateFilterModal from "@/components/DateFilterModal";
@@ -749,12 +749,15 @@ const IconesSection = () => (
 
     <IconGroup
       title="Clima — InfoBlock"
-      description="Ícone de clima mapeado a partir do WMO weather code retornado pela Open-Meteo. Ausente quando weather code é null."
+      description="Ícone de clima mapeado a partir do WMO weather code retornado pela Open-Meteo, cruzado com isDay (sunrise/sunset do dia). Ausente quando weather code é null."
       icons={[
-        { icon: Sun,            name: 'Sun',            usage: 'Céu limpo (code 0–2)' },
-        { icon: Cloud,          name: 'Cloud',          usage: 'Nublado / neblina (code 3–48)' },
-        { icon: CloudRain,      name: 'CloudRain',      usage: 'Chuva / garoa (code 49–82)' },
-        { icon: CloudLightning, name: 'CloudLightning', usage: 'Tempestade (code 83+)' },
+        { icon: Sun,            name: 'Sun',            usage: 'Céu limpo, dia (code 0–2)' },
+        { icon: Moon,           name: 'Moon',           usage: 'Céu limpo, noite (code 0–2)' },
+        { icon: Cloud,          name: 'Cloud',          usage: 'Nublado / neblina, dia (code 3–48)' },
+        { icon: CloudMoon,      name: 'CloudMoon',      usage: 'Nublado / neblina, noite (code 3–48)' },
+        { icon: CloudRain,      name: 'CloudRain',      usage: 'Chuva / garoa, dia (code 49–82)' },
+        { icon: CloudMoonRain,  name: 'CloudMoonRain',  usage: 'Chuva / garoa, noite (code 49–82)' },
+        { icon: CloudLightning, name: 'CloudLightning', usage: 'Tempestade (code 83+, dia e noite)' },
       ]}
     />
 
@@ -774,7 +777,7 @@ const InfoBlockSection = () => (
   <div>
     <SectionTitle>Info Block</SectionTitle>
     <p style={{ fontSize: 'var(--font-size-body)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-      Sempre em grupo de quatro na BeachPage, dispostos em grid 2×2, com labels fixos: <strong>Altura maré</strong>, <strong>Vento</strong>, <strong>Período</strong> e <strong>Clima</strong>. O label aparece acima do valor — o usuário lê primeiro o que é, depois o número. Ícones são dinâmicos: maré (ArrowUp/Down), vento (Wind + direção), período (Timer fixo), clima (Sun/Cloud/CloudRain/CloudLightning). Prop <code>icon</code> é um React node opcional — sem ícone, o bloco continua funcional.
+      Sempre em grupo de quatro na BeachPage, dispostos em grid 2×2, com labels fixos: <strong>Altura maré</strong>, <strong>Vento</strong>, <strong>Período</strong> e <strong>Clima</strong>. O label aparece acima do valor — o usuário lê primeiro o que é, depois o número. Ícones são dinâmicos: maré (ArrowUp/Down), vento (Wind + direção), período (Timer fixo), clima (Sun/Moon, Cloud/CloudMoon, CloudRain/CloudMoonRain, CloudLightning — variante conforme isDay). Prop <code>icon</code> é um React node opcional — sem ícone, o bloco continua funcional.
     </p>
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)', maxWidth: 380 }}>
       <InfoBlock

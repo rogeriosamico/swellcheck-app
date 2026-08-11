@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera, Heart, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Info, MessageCircle, Send, Mail, ExternalLink, Check, Camera, Heart, ArrowUp, ArrowDown, Wind, Timer, Sun, Cloud, CloudRain, CloudLightning, Moon, CloudMoon, CloudMoonRain } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/Header";
@@ -29,11 +29,11 @@ import { getToday, getMaxDay, addDays, isValidDate, parseDateLabel, shortDateLab
 import { swellSegs } from "@/lib/swell";
 import { parseTidePts, interpolateTideLevel } from "@/lib/tides";
 
-function weatherIcon(code) {
+function weatherIcon(code, isDay = true) {
   if (code == null)   return undefined;
-  if (code <= 2)      return <Sun size={20} />;
-  if (code <= 48)     return <Cloud size={20} />;
-  if (code <= 82)     return <CloudRain size={20} />;
+  if (code <= 2)      return isDay ? <Sun size={20} /> : <Moon size={20} />;
+  if (code <= 48)     return isDay ? <Cloud size={20} /> : <CloudMoon size={20} />;
+  if (code <= 82)     return isDay ? <CloudRain size={20} /> : <CloudMoonRain size={20} />;
   return                     <CloudLightning size={20} />;
 }
 
@@ -381,7 +381,7 @@ export default function BeachPage() {
                   <InfoBlock
                     label="Clima"
                     value={hourData.temperature != null ? `${hourData.temperature}°C` : '—'}
-                    icon={weatherIcon(hourData.weatherCode)}
+                    icon={weatherIcon(hourData.weatherCode, hourData.isDay)}
                   />
                 </div>
 
