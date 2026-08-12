@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div style={styles.page}>
       <div style={styles.card}>
         <h1 style={styles.title}>Ondina</h1>
-        <p style={styles.subtitle}>Previsão de surf para as melhores praias do Brasil.</p>
+        <p style={styles.subtitle}>Previsão de ondas para as melhores praias do Brasil.</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>

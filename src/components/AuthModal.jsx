@@ -145,7 +145,7 @@ function LoginView({ email, setEmail, password, setPassword, error, loading, onS
     <>
       <DialogHeader style={s.header}>
         <DialogTitle style={s.title}>Entre ou crie sua conta</DialogTitle>
-        <p style={s.subtitle}>Previsão de surf para as melhores praias do Brasil.</p>
+        <p style={s.subtitle}>Previsão de ondas para as melhores praias do Brasil.</p>
       </DialogHeader>
 
       <form onSubmit={onSubmit} style={s.form}>
