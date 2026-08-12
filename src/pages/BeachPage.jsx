@@ -230,7 +230,7 @@ export default function BeachPage() {
   const handleInstagramShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Swell Check', url: shareUrl });
+        await navigator.share({ title: 'Ondina', url: shareUrl });
         return;
       } catch { /* usuário cancelou ou share falhou */ }
     }
@@ -522,7 +522,7 @@ export default function BeachPage() {
                 { id: 'whatsapp',   label: 'WhatsApp',                       icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
                 { id: 'instagram',  label: igCopied ? 'Link copiado!' : 'Instagram', icon: <Camera size={16} />, onClick: handleInstagramShare },
                 { id: 'telegram',   label: 'Telegram',                       icon: <Send size={16} />,           href: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`, target: '_blank' },
-                { id: 'email',      label: 'E-mail',                         icon: <Mail size={16} />,           href: `mailto:?subject=${encodeURIComponent(`Swell Check — ${beach}`)}&body=${encodeURIComponent(shareUrl)}`, target: undefined },
+                { id: 'email',      label: 'E-mail',                         icon: <Mail size={16} />,           href: `mailto:?subject=${encodeURIComponent(`Ondina — ${beach}`)}&body=${encodeURIComponent(shareUrl)}`, target: undefined },
                 { id: 'facebook',   label: 'Facebook',                       icon: <ExternalLink size={16} />,   href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, target: '_blank' },
                 { id: 'x',          label: 'X',                              icon: <ExternalLink size={16} />,   href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareUrl)}`, target: '_blank' },
               ].map(({ id, label, icon, href, target, onClick }) => (

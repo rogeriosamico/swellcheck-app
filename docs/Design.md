@@ -1,4 +1,4 @@
-# DESIGN.md — Swell Check
+# DESIGN.md — Ondina
 
 > **Guardrails de documentação**
 >

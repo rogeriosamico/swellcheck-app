@@ -100,7 +100,7 @@ const Header = ({
       {variant === 'default' ? (
         <div className="flex items-center gap-2">
           <h1 className="text-token-title text-[var(--text-primary)] leading-normal">
-            Swell Check
+            Ondina
           </h1>
         </div>
       ) : (
@@ -111,7 +111,7 @@ const Header = ({
             <span>{locationLabel || 'Localização ativa'}</span>
           </div>
           <h1 className="text-token-title text-[var(--text-primary)] leading-normal">
-            Swell Check
+            Ondina
           </h1>
         </div>
       )}

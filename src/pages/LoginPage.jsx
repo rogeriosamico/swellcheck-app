@@ -42,7 +42,7 @@ export default function LoginPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Swell Check</h1>
+        <h1 style={styles.title}>Ondina</h1>
         <p style={styles.subtitle}>Previsão de surf para as melhores praias do Brasil.</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>

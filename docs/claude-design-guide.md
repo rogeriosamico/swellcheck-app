@@ -1,4 +1,4 @@
-# Claude Design Guide — Swell Check
+# Claude Design Guide — Ondina
 
 > Guia operacional para geração de telas com Claude Design.
 > Contém os valores concretos de tokens, padrões de código e regras de composição extraídos diretamente do codebase.

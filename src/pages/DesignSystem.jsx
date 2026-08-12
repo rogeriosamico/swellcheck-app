@@ -145,7 +145,7 @@ const DesignSystem = () => {
         }}>
           <div style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: 'var(--font-size-headline)', fontWeight: 'var(--font-weight-bold)', display: 'block' }}>Swell Check</span>
+              <span style={{ fontSize: 'var(--font-size-headline)', fontWeight: 'var(--font-weight-bold)', display: 'block' }}>Ondina</span>
               <span style={{ fontSize: 'var(--font-size-subtitle)', opacity: 0.4 }}>Design System</span>
             </div>
             <button onClick={() => setSidebarOpen(false)} style={toggleBtnStyle} aria-label="Fechar sidebar">
@@ -376,7 +376,7 @@ const TypographySection = () => (
               {getCSSVar(t.sizeVar)} · {getCSSVar(t.weightVar)}
             </TableCell>
             <TableCell style={{ padding: 'var(--spacing-md) 0', fontSize: `var(${t.sizeVar})`, fontWeight: `var(${t.weightVar})` }}>
-              Swell Check
+              Ondina
             </TableCell>
           </TableRow>
         ))}
@@ -951,7 +951,7 @@ const ShareModalDemo = () => {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const demoUrl = 'https://swellcheck.com.br/praia/paiva';
+  const demoUrl = 'https://ondina.surf/praia/paiva';
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -971,7 +971,7 @@ const ShareModalDemo = () => {
   const apps = [
     { label: 'WhatsApp', icon: <MessageCircle size={16} />, href: `https://api.whatsapp.com/send?text=${encodeURIComponent(demoUrl)}`, target: '_blank' },
     { label: 'Telegram', icon: <Send size={16} />, href: `https://t.me/share/url?url=${encodeURIComponent(demoUrl)}`, target: '_blank' },
-    { label: 'E-mail', icon: <Mail size={16} />, href: `mailto:?subject=${encodeURIComponent('Swell Check')}&body=${encodeURIComponent(demoUrl)}`, target: undefined },
+    { label: 'E-mail', icon: <Mail size={16} />, href: `mailto:?subject=${encodeURIComponent('Ondina')}&body=${encodeURIComponent(demoUrl)}`, target: undefined },
     { label: 'Facebook', icon: <ExternalLink size={16} />, href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(demoUrl)}`, target: '_blank' },
     { label: 'X', icon: <ExternalLink size={16} />, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(demoUrl)}`, target: '_blank' },
   ];

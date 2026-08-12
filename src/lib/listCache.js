@@ -1,4 +1,4 @@
-const CACHE_KEY = (date) => `swell|forecast-all|${date}`;
+const CACHE_KEY = (date) => `ondina|forecast-all|${date}`;
 const TTL_MS = 6 * 60 * 60 * 1000;
 
 export function getCachedList(date) {

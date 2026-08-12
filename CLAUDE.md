@@ -1,4 +1,4 @@
-# Swell Check — Project Context
+# Ondina — Project Context
 
 Whenever working on this project, read the following files before doing anything else:
 
