@@ -92,6 +92,7 @@ const TideChart = ({ tides, currentHour }) => {
         <Area
           dataKey="level"
           type="monotone"
+          baseValue={minLevel - yPad}
           fill="url(#tideGradient)"
           stroke="var(--border-primary)"
           strokeWidth={1.5}
