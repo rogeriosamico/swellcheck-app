@@ -33,6 +33,13 @@ export const BEACHES_META = {
   "Praia de Campina":      { state: "PB", country: "Brasil", slug: "praia-de-campina",       lat: -6.9283,  lng: -34.8664 },
   "Barra de Camaratuba":   { state: "PB", country: "Brasil", slug: "barra-de-camaratuba",    lat: -6.5997,  lng: -35.0578 },
   "Pedra do Sal":          { state: "PI", country: "Brasil", slug: "pedra-do-sal",           lat: -2.9106,  lng: -41.4733 },
+
+  "Ribeira d'Ilhas":       { state: "Lisboa", country: "Portugal", slug: "ribeira-dilhas",     lat: 38.9714, lng: -9.4193 },
+  "Supertubos":            { state: "Leiria", country: "Portugal", slug: "supertubos",         lat: 39.3402, lng: -9.3607 },
+  "Nazaré":                { state: "Leiria", country: "Portugal", slug: "nazare",             lat: 39.6033, lng: -9.0802 },
+  "Praia Grande":          { state: "Lisboa", country: "Portugal", slug: "praia-grande",       lat: 38.8130, lng: -9.4720 },
+  "Praia das Maçãs":       { state: "Lisboa", country: "Portugal", slug: "praia-das-macas",    lat: 38.8064, lng: -9.4694 },
+  "Praia do Magoito":      { state: "Lisboa", country: "Portugal", slug: "praia-do-magoito",   lat: 38.8385, lng: -9.4805 },
 };
 
 export const SLUG_TO_BEACH = Object.fromEntries(
