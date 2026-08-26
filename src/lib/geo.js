@@ -18,14 +18,19 @@ export async function reverseGeocode(lat, lng) {
       { headers: { "Accept-Language": "pt-BR" } }
     );
     const data = await res.json();
-    const city =
-      data.address?.city ||
-      data.address?.town ||
-      data.address?.municipality ||
-      data.address?.county;
-    const stateCode = data.address?.["ISO3166-2-lvl4"]?.split("-")[1];
-    if (city && stateCode) return `${city}, ${stateCode}`;
-    return null;
+    const addr = data.address ?? {};
+    const city = addr.city || addr.town || addr.municipality || addr.county;
+    if (!city) return null;
+
+    // BR usa admin level 4 (ISO3166-2-lvl4, ex. "BR-PE" → "PE"). Fora do Brasil o
+    // nível administrativo equivalente muda (ex. distritos de Portugal são lvl6,
+    // "PT-11") e o código costuma ser numérico, não uma sigla legível — nesse
+    // caso cai pro nome por extenso (state/county) em vez de descartar a cidade.
+    const isoCode = (addr["ISO3166-2-lvl4"] ?? addr["ISO3166-2-lvl6"])?.split("-")[1];
+    const stateCode = isoCode && /^[A-Z]+$/.test(isoCode) ? isoCode : null;
+    const region = stateCode || addr.state || addr.county;
+
+    return region && region !== city ? `${city}, ${region}` : city;
   } catch {
     return null;
   }
