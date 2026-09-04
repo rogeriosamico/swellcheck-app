@@ -40,6 +40,8 @@ export const BEACHES_META = {
   "Praia Grande":          { state: "Lisboa", country: "Portugal", slug: "praia-grande",       lat: 38.8130, lng: -9.4720 },
   "Praia das Maçãs":       { state: "Lisboa", country: "Portugal", slug: "praia-das-macas",    lat: 38.8064, lng: -9.4694 },
   "Praia do Magoito":      { state: "Lisboa", country: "Portugal", slug: "praia-do-magoito",   lat: 38.8385, lng: -9.4805 },
+
+  "Scheveningen":          { state: "Zuid-Holland", country: "Holanda", slug: "scheveningen",   lat: 52.1092, lng: 4.2727 },
 };
 
 export const SLUG_TO_BEACH = Object.fromEntries(
