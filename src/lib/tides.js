@@ -1,8 +1,16 @@
 export function parseTidePts(tides) {
   if (!tides || tides.length === 0) return [];
+  // "high" é relativo ao próprio range do dia (ponto médio entre a menor e a maior
+  // leitura), não um valor absoluto: a tábua BR usa datum do porto (sempre positivo,
+  // ~0.3–2.1m — onde 1.2 caía perto do meio), mas países sem harbor usam maré do
+  // Open-Meteo referenciada ao nível médio do mar (oscila em torno de 0, ex.: Holanda
+  // -0.6 a 1.2m) — um limiar fixo de 1.2 classificaria a preamar real como "baixa" nesses
+  // casos. Ver BEACHES.md, seção "Como cadastrar uma nova praia com perfil".
+  const levels = tides.map(t => t.level);
+  const midLevel = (Math.min(...levels) + Math.max(...levels)) / 2;
   return tides.map(t => {
     const [hr, mn] = t.hour.split(':').map(Number);
-    return { hour: hr + mn / 60, level: t.level, high: t.level > 1.2 };
+    return { hour: hr + mn / 60, level: t.level, high: t.level > midLevel };
   });
 }
 
